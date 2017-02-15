@@ -25,6 +25,6 @@ public final class Constants {
             RUBBER_ASPHALT_SF = 9f;
     
     public static final String
-            AI_PATH_URL = "lib/ai_path.json";
+            AI_PATH_URL = "res/ai_path.json";
             
 }
