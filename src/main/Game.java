@@ -96,7 +96,7 @@ public final class Game {
     private static void updateCamera() {
         Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition());
         cameraTranslation.set(pos.x-WIDTH/2, pos.y-HEIGHT/2);
-        if(consumeInput(VK_Z)) cameraZ += 40;
+        //if(consumeInput(VK_Z)) cameraZ += 40;
         if(consumeInput(VK_X)) cameraZ -= 40;
         if(consumeInput(VK_T)) tiltCamera = !tiltCamera;
     }
