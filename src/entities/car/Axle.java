@@ -98,7 +98,7 @@ public final class Axle {
     protected void render() {
         c.pushMatrix();
             Vec2 pos = box2d.coordWorldToPixels(axle.getPosition());
-            c.translate(pos.x, pos.y);
+            c.translate(pos.x, pos.y, radius_pixels);
             float theta = axle.getAngle();
             c.rotate(-theta);
             

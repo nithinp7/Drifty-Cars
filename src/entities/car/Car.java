@@ -89,7 +89,7 @@ public abstract class Car implements Drawable {
         rearAxle.render();
         c.pushMatrix();
             Vec2 pos = box2d.coordWorldToPixels(chasis.getPosition());
-            c.translate(pos.x, pos.y);
+            c.translate(pos.x, pos.y, h+box2d.scalarWorldToPixels(0.1f));
             c.rotate(-chasis.getAngle());
             //c.fill(180, 120, 110);
             c.fill(color.getRed(), color.getGreen(), color.getBlue());

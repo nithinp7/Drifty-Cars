@@ -12,6 +12,7 @@ import static main.Main.*;
 import static util.Constants.*;
 import static main.Init.*;
 import org.jbox2d.common.Vec2;
+import org.jbox2d.common.Vec3;
 import org.jbox2d.dynamics.Body;
 import shiffman.box2d.*;
 import static util.input.Input.consumeInput;
@@ -64,6 +65,7 @@ public final class Game {
             c.rotateX(PI/4);
             c.translate(0, -HEIGHT/2);
         }
+        asphalt.texture.render();
         cars.forEach(car -> car.render());
         buildings.forEach(b -> b.render());
         c.fill(0);
@@ -79,7 +81,7 @@ public final class Game {
             path.clear();
         }
         if(consumeInput(VK_S)) {
-            path.savePath(AI_PATH_URL);
+            //path.savePath(AI_PATH_URL);
         }
         if(consumeInput(VK_L)) {
             path.initFromJSON(AI_PATH_URL);
@@ -96,7 +98,7 @@ public final class Game {
     private static void updateCamera() {
         Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition());
         cameraTranslation.set(pos.x-WIDTH/2, pos.y-HEIGHT/2);
-        //if(consumeInput(VK_Z)) cameraZ += 40;
+        if(consumeInput(VK_Z)) cameraZ += 40;
         if(consumeInput(VK_X)) cameraZ -= 40;
         if(consumeInput(VK_T)) tiltCamera = !tiltCamera;
     }
@@ -107,5 +109,17 @@ public final class Game {
     
     public static Vec2 coordPixelsToWorld(float pixelX, float pixelY) {
         return coordPixelsToWorld(new Vec2(pixelX, pixelY));
+    }
+    
+    public static Vec3 coordWorldToPixels(Vec3 coord) {
+        Vec2 xy = box2d.coordWorldToPixels(new Vec2(coord.x, coord.y));
+        float z = box2d.scalarWorldToPixels(coord.z);
+        return new Vec3(xy.x, xy.y, z);
+    }
+    
+    public static Vec3 vectorWorldToPixels(Vec3 vec) {
+        Vec2 xy = box2d.vectorWorldToPixels(new Vec2(vec.x, vec.y));
+        float z = box2d.scalarWorldToPixels(vec.z);
+        return new Vec3(xy.x, xy.y, z);
     }
 }

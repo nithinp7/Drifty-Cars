@@ -11,6 +11,7 @@ import static processing.core.PConstants.PI;
 import shiffman.box2d.Box2DProcessing;
 import ai.Path;
 import entities.car.Car;
+import org.jbox2d.common.Vec3;
 
 /**
  *
@@ -29,7 +30,7 @@ public final class Init {
     }
     
     public static void initMap() {
-        asphalt = new Asphalt();
+        asphalt = new Asphalt(new Vec3(-150, -150, 0), new Vec3[]{ new Vec3(0, 0, 0), new Vec3(300, 0, 0), new Vec3(300, 300, 0), new Vec3(0, 300, 0) });
     }
     
     public static void initVehicles() {
