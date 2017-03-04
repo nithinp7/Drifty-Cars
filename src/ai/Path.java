@@ -9,6 +9,7 @@ import static main.Main.c;
 import static main.Game.box2d;
 import org.jbox2d.common.Vec2;
 import static processing.core.PApplet.*;
+import processing.core.PGraphics;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 import util.interfaces.Drawable;
@@ -17,7 +18,7 @@ import util.interfaces.Drawable;
  *
  * @author Nithin
  */
-public final class Path implements Drawable {
+public final class Path {
     
     private final ArrayList<PathNode> nodes = new ArrayList<>();
     private final ArrayList<PathSegment> segments = new ArrayList<>(), tempSegments = new ArrayList<>();
@@ -171,7 +172,6 @@ public final class Path implements Drawable {
         tempSegments.remove(temp);
     }
     
-    @Override
     public void render() {
         nodes.forEach(node -> node.render());
         segments.forEach(segment -> segment.render());

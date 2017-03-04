@@ -11,7 +11,7 @@ import static processing.core.PConstants.PI;
 import shiffman.box2d.Box2DProcessing;
 import ai.Path;
 import entities.car.Car;
-import org.jbox2d.common.Vec3;
+import static util.Constants.*;
 
 /**
  *
@@ -19,27 +19,36 @@ import org.jbox2d.common.Vec3;
  */
 public final class Init {
     
-    public static void initAI() {
+    public static void initAll() {
+        initTextures();
+        initPhysics();
+        initAI();
+        initMap();
+        initVehicles();
+        initBuildings();
+    }
+    
+    private static void initAI() {
         path = new Path();
     }
     
-    public static void initPhysics() {
+    private static void initPhysics() {
         box2d = new Box2DProcessing(c);
         box2d.setScaleFactor(2);
         box2d.createWorld(new Vec2(0, 0));
     }
     
-    public static void initMap() {
-        asphalt = new Asphalt(new Vec3(-150, -150, 0), new Vec3[]{ new Vec3(0, 0, 0), new Vec3(300, 0, 0), new Vec3(300, 300, 0), new Vec3(0, 300, 0) });
+    private static void initMap() {
+        asphalt = new Asphalt(new Vec2(-150, -150), new Vec2(300, 300), new Vec2(20, 20));
     }
     
-    public static void initVehicles() {
+    private static void initVehicles() {
         Car car = new UserCar(0, 0, -PI/4, 6, 1.8f, 1.2f);
         cars.add(car);
         cameraTarget = car.chasis;
     }
     
-    public static void initBuildings() {
+    private static void initBuildings() {
         buildings.add(new Building(0, 150, 0, 280, 20, 10));
         buildings.add(new Building(0, -150, 0, 280, 20, 10));
         buildings.add(new Building(-150, 0, 0, 20, 300, 10));

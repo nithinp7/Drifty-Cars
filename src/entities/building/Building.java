@@ -9,6 +9,7 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.FixtureDef;
+import processing.core.PGraphics;
 import util.interfaces.Drawable;
 
 /**
@@ -60,13 +61,13 @@ public final class Building implements Drawable {
     }
     
     @Override
-    public void render() {
+    public void render(PGraphics g) {
         Vec2 pos = box2d.coordWorldToPixels(x, y);
-        c.pushMatrix();
-            c.translate(pos.x, pos.y, h_pixels/2);
-            c.rotate(-theta);
-            c.fill(110, 130, 140);
-            c.box(l_pixels, w_pixels, h_pixels);
-        c.popMatrix();
+        g.pushMatrix();
+            g.translate(pos.x, pos.y, h_pixels/2);
+            g.rotate(-theta);
+            g.fill(110, 130, 140);
+            g.box(l_pixels, w_pixels, h_pixels);
+        g.popMatrix();
     }
 }

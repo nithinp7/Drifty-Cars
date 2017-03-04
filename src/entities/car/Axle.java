@@ -11,12 +11,14 @@ import org.jbox2d.dynamics.joints.FrictionJoint;
 import org.jbox2d.dynamics.joints.FrictionJointDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
+import processing.core.PGraphics;
+import util.interfaces.Drawable;
 
 /**
  *
  * @author Nithin
  */
-public final class Axle {
+public final class Axle implements Drawable {
     
     public final Body axle, chasis;
     public final RevoluteJoint chasisConnector; 
@@ -95,24 +97,25 @@ public final class Axle {
         updateFriction();
     }
     
-    protected void render() {
-        c.pushMatrix();
+    @Override
+    public void render(PGraphics g) {
+        g.pushMatrix();
             Vec2 pos = box2d.coordWorldToPixels(axle.getPosition());
-            c.translate(pos.x, pos.y, radius_pixels);
+            g.translate(pos.x, pos.y, radius_pixels);
             float theta = axle.getAngle();
-            c.rotate(-theta);
+            g.rotate(-theta);
             
-            c.fill(50);
-            c.strokeWeight(1.5f);
-            c.stroke(20, 20, 40);
-            c.box(thickness_pixels, spacing_pixels, thickness_pixels);
+            g.fill(50);
+            g.strokeWeight(1.5f);
+            g.stroke(20, 20, 40);
+            g.box(thickness_pixels, spacing_pixels, thickness_pixels);
             
-            c.translate(0, spacing_pixels/2);
-            c.box(2*radius_pixels, thickness_pixels, 2*radius_pixels);
+            g.translate(0, spacing_pixels/2);
+            g.box(2*radius_pixels, thickness_pixels, 2*radius_pixels);
             
-            c.translate(0, -spacing_pixels);
-            c.box(2*radius_pixels, thickness_pixels, 2*radius_pixels);
-        c.popMatrix();
+            g.translate(0, -spacing_pixels);
+            g.box(2*radius_pixels, thickness_pixels, 2*radius_pixels);
+        g.popMatrix();
     }
     
     private void drive() {

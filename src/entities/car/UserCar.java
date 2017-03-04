@@ -47,7 +47,7 @@ public final class UserCar extends Car {
         targetSteerAngle = atan2(dir.x*sin(-cAng) + dir.y*cos(-cAng), dir.x * cos(-cAng) - dir.y*sin(-cAng));
         
         targetSteerAngle = constrain(targetSteerAngle, frontAxle.chasisConnector.getLowerLimit(), frontAxle.chasisConnector.getUpperLimit());
-        if(abs(targetSteerAngle) < PI/10) targetSteerAngle = 0;
+        //if(abs(targetSteerAngle) < PI/10) targetSteerAngle = 0;
         
         float theta = frontAxle.axle.getAngle()-chasis.getAngle();
         

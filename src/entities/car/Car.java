@@ -7,6 +7,7 @@ import static main.Main.*;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
+import processing.core.PGraphics;
 import util.interfaces.Drawable;
 
 /**
@@ -84,18 +85,18 @@ public abstract class Car implements Drawable {
     }
     
     @Override
-    public void render() {
-        frontAxle.render();
-        rearAxle.render();
-        c.pushMatrix();
+    public void render(PGraphics g) {
+        frontAxle.render(g);
+        rearAxle.render(g);
+        g.pushMatrix();
             Vec2 pos = box2d.coordWorldToPixels(chasis.getPosition());
-            c.translate(pos.x, pos.y, h+box2d.scalarWorldToPixels(0.1f));
-            c.rotate(-chasis.getAngle());
+            g.translate(pos.x, pos.y, h+box2d.scalarWorldToPixels(0.5f));
+            g.rotate(-chasis.getAngle());
             //c.fill(180, 120, 110);
-            c.fill(color.getRed(), color.getGreen(), color.getBlue());
-            c.strokeWeight(1.5f);
-            c.stroke(30, 40, 30);
-            c.box(l_pixels, w_pixels, h_pixels);
-        c.popMatrix();
+            g.fill(color.getRed(), color.getGreen(), color.getBlue());
+            g.strokeWeight(1.5f);
+            g.stroke(30, 40, 30);
+            g.box(l_pixels, w_pixels, h_pixels);
+        g.popMatrix();
     }
 }

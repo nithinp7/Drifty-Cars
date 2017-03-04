@@ -6,7 +6,7 @@ import static main.Main.c;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.common.Vec3;
 import static processing.core.PConstants.*;
-import processing.core.PImage;
+import static util.Constants.*;
 
 /**
  *
@@ -14,16 +14,14 @@ import processing.core.PImage;
  */
 public class Texture {
     
-    private final String texURL;
     private final Vec3 loc;
     
     private final Vec2[] texCoords;
     private final Vec3[] relCoords;
    
-    private final PImage tex;
+    private final int texIndex;
     
-    public Texture(String texURL, Vec2[] texCoords, Vec3 loc, Vec3[] relCoords) {
-        this.texURL = texURL;
+    public Texture(int texIndex, Vec2[] texCoords, Vec3 loc, Vec3[] relCoords) {
         this.loc = loc;
         
         if(texCoords.length != relCoords.length) System.err.println("Texture Coords and Relative Coords have different lengths");
@@ -31,15 +29,15 @@ public class Texture {
         this.texCoords = texCoords;
         this.relCoords = relCoords;
         
-        tex = c.loadImage(texURL);
+        this.texIndex = texIndex;
     }
     
     public void render() {
         c.beginShape();
-            c.texture(tex);
+            c.texture(getTextureImage(texIndex));
             c.textureMode(NORMAL);
             c.textureWrap(REPEAT);
-            c.tint(255, 200);
+            c.tint(255, 255);
             for(int i=0; i<texCoords.length; i++) {
                 Vec2 texCoord = texCoords[i];
                 Vec3 relCoord = relCoords[i],
