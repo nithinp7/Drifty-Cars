@@ -9,10 +9,8 @@ import static main.Main.c;
 import static main.Game.box2d;
 import org.jbox2d.common.Vec2;
 import static processing.core.PApplet.*;
-import processing.core.PGraphics;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
-import util.interfaces.Drawable;
 
 /**
  *

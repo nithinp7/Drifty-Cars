@@ -15,6 +15,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.common.Vec3;
 import org.jbox2d.dynamics.Body;
 import processing.core.PGraphics;
+import processing.core.PImage;
 import shiffman.box2d.*;
 import static util.input.Input.consumeInput;
 
@@ -29,7 +30,10 @@ public final class Game {
     
     public static Asphalt asphalt;
     
+    private static PGraphics trackMarksLayer;
+    
     public static ArrayList<Car> cars = new ArrayList<>();
+    public static ArrayList<AI_Car> aiCars = new ArrayList<>();
     public static ArrayList<Building> buildings = new ArrayList<>();
     
     protected static Body cameraTarget;
@@ -43,10 +47,13 @@ public final class Game {
     
     protected static void init() {
         g = c.g;
+        trackMarksLayer = c.createGraphics(WIDTH, HEIGHT);
         initAll();
     }
     
     protected static void tick() {
+        
+        for(AI_Car ai : aiCars) ai.checkFront();
         updatePathDebug();
         updateAI_Debug();
         updateCamera();
@@ -55,36 +62,42 @@ public final class Game {
     }
         
     protected static void render() {
-        c.background(120, 160, 180);
-        c.ambientLight(100, 100, 100);
-        c.directionalLight(255, 255, 255, -1, 1, -1);
-        //c.ambientLight(30, 30, 30);
-        //c.directionalLight(60, 60, 60, -1, 1, -1);
         
-//        if(tiltCamera) {
-//            c.translate(WIDTH/2, HEIGHT/2);
-//            c.rotateX(PI/4);
-//            c.translate(-WIDTH/2, -HEIGHT/2);
-//        }
+        trackMarksLayer.beginDraw();
+        
+        transformCamera(g);
 
-        cameraZ = constrain(cameraZ, 20, 1000);
-        
-        c.translate(WIDTH/2, HEIGHT/2, cameraZ);
-        
-        if(tiltCamera) c.rotateX(PI/2.5f);
-        c.rotateZ(cameraAngle);
-        //c.translate(-, PI);
-        c.translate(-WIDTH/2, -HEIGHT/2);
-        
-        c.translate(-cameraTranslation.x, -cameraTranslation.y);
-        
-        //Vec2 plightPos = box2d.coordWorldToPixels(cars.get(0).chasis.getPosition());
-        //c.pointLight(50, 250, 250, plightPos.x, plightPos.y, 2);
         asphalt.render();
         cars.forEach(car -> car.render(g));
+
+        cars.forEach(car -> car.updateTrackMarks(trackMarksLayer));
+
         buildings.forEach(b -> b.render(g));
         c.fill(0);
         path.render();
+
+        c.stroke(0);
+
+        c.image(trackMarksLayer, 0, 0, WIDTH, HEIGHT);
+        
+        trackMarksLayer.endDraw();
+    }
+    
+    private static void transformCamera(PGraphics g) {
+        g.frustum(-5, 5, -5, 5, 3, 500);
+
+        cameraZ = constrain(cameraZ, 300, 1000);
+        
+        g.translate(WIDTH/2, HEIGHT/2, cameraZ);
+        
+        if(tiltCamera) c.rotateX(PI/3f);
+        g.rotateZ(cameraAngle);
+        g.translate(-WIDTH/2, -HEIGHT/2);
+        g.translate(-cameraTranslation.x, -cameraTranslation.y);
+        
+        g.background(120, 160, 180);
+        g.ambientLight(100, 100, 100);
+        g.directionalLight(255, 255, 255, -1, 1, -1);
     }
     
     private static void updatePathDebug() {
@@ -103,10 +116,17 @@ public final class Game {
         }
     }
     
-    private static void updateAI_Debug() {
+    private static void updateAI_Debug() { 
+        Vec2 pos = coordPixelsToWorld(c.mouseX, c.mouseY);
         if(consumeInput(VK_M)) {
-            Vec2 pos = coordPixelsToWorld(c.mouseX, c.mouseY);
-            cars.add(new AI_Car(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, -0f)));
+            AI_Car aiCar = new AI_Car(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, 0f), new PID(0.4f, 0f, 0f));
+            aiCars.add(aiCar);
+            cars.add(aiCar);
+        }
+        
+        if(consumeInput(VK_K)) {
+            Building b = new Building(pos.x, pos.y, 0, 10, 10, 10);
+            buildings.add(b);
         }
     }
     
@@ -114,8 +134,8 @@ public final class Game {
         Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition());
         cameraAngle += (cameraTarget.getAngle()-PI/2 - cameraAngle)/20.;
         cameraTranslation.set(pos.x-WIDTH/2, pos.y-HEIGHT/2);
-        if(consumeInput(VK_Z)) cameraZ += 40;
-        if(consumeInput(VK_X)) cameraZ -= 40;
+        if(consumeInput(VK_Z)) cameraZ += 20;
+        if(consumeInput(VK_X)) cameraZ -= 20;
         if(consumeInput(VK_T)) tiltCamera = !tiltCamera;
     }
     

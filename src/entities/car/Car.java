@@ -84,6 +84,10 @@ public abstract class Car implements Drawable {
         frontAxle.axle.applyTorque(turn*maxTurnTorque);
     }
     
+    public float getSlideSpeed() {
+        return rearAxle.getSlideSpeed();
+    }
+    
     @Override
     public void render(PGraphics g) {
         frontAxle.render(g);
@@ -98,5 +102,10 @@ public abstract class Car implements Drawable {
             g.stroke(30, 40, 30);
             g.box(l_pixels, w_pixels, h_pixels);
         g.popMatrix();
+    }
+    
+    public void updateTrackMarks(PGraphics g) {
+        frontAxle.updateTrackMarks(g);
+        rearAxle.updateTrackMarks(g);
     }
 }

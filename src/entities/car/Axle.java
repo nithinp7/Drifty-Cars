@@ -20,9 +20,12 @@ import util.interfaces.Drawable;
  */
 public final class Axle implements Drawable {
     
-    public final Body axle, chasis;
-    public final RevoluteJoint chasisConnector; 
-    public final FrictionJoint frictionJointA, frictionJointB;
+    public final Vec2 prevPosL = new Vec2(0, 0), prevPosR = new Vec2(0, 0);
+    
+    protected final Body axle, chasis;
+    protected final RevoluteJoint chasisConnector; 
+    
+    protected final FrictionJoint frictionJointA, frictionJointB;
     
     public final Vec2 wheelA, wheelB;
     
@@ -118,6 +121,7 @@ public final class Axle implements Drawable {
             g.translate(0, -spacing_pixels);
             g.box(2*radius_pixels, thickness_pixels, 2*radius_pixels);
         g.popMatrix();
+        updateTrackMarks(g);
     }
     
     private void drive() {
@@ -153,5 +157,27 @@ public final class Axle implements Drawable {
     
     protected float getSlideSpeed() {
         return slideSpeed;
+    }
+    
+    protected void updateTrackMarks(PGraphics g) {
+        g.pushStyle();
+            g.strokeWeight(1.5f);
+            g.stroke(110, 90, 140, 35);
+            float angle = axle.getAngle(), sin = sin(angle), cos = cos(angle);
+            Vec2 pos = axle.getPosition(), 
+                 posR = pos.add(new Vec2(wheelA.x*cos - wheelA.y*sin, wheelA.x*sin + wheelA.y*cos)), 
+                 posL = pos.add(new Vec2(wheelB.x*cos - wheelB.y*sin, wheelB.x*sin + wheelB.y*cos)),
+                 pixPosR = box2d.coordWorldToPixels(posR),
+                 pixPosL = box2d.coordWorldToPixels(posL);
+            boolean drawTracks = !(slideSpeed < 0.5f || prevPosR.sub(pixPosR).length() > 8 || prevPosL.sub(pixPosL).length() > 8);
+            
+            if(drawTracks) {
+                g.line(prevPosR.x, prevPosR.y, pixPosR.x, pixPosR.y);
+                g.line(prevPosL.x, prevPosL.y, pixPosL.x, pixPosL.y);
+            }
+            
+            prevPosR.set(pixPosR);
+            prevPosL.set(pixPosL);
+        g.popStyle();
     }
 }
