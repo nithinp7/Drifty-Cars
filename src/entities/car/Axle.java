@@ -28,6 +28,8 @@ public final class Axle implements Drawable {
     
     final float spacing, spacing_pixels, radius, radius_pixels, thickness, thickness_pixels;
     
+    private float slideSpeed = 0;
+    
     public Axle(float spacing, float radius, float thickness, float theta, Body chasis, Vec2 chasisConnectionLocal, float maxTurn) {
         this.spacing = spacing;
         this.radius = radius;
@@ -139,11 +141,17 @@ public final class Axle implements Drawable {
               sf = RUBBER_ASPHALT_SF*fn,
               kf = RUBBER_ASPHALT_KF*fn;
         
+        slideSpeed = vl;
+        
         if(massTotal*vl < sf*TIMESTEP) {
             axle.applyForceToCenter(vL.mul(-massTotal*FPS));
             //axle.(vL.mul(-massTotal), new Vec2(0, 0), true);
         } else {
             axle.applyForceToCenter(vL.mul(-kf/vl));
         }
+    }
+    
+    protected float getSlideSpeed() {
+        return slideSpeed;
     }
 }
