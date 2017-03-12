@@ -3,7 +3,7 @@ package main;
 
 import ai.PID;
 import ai.Path;
-import entities.building.Building;
+import entities.building.Block;
 import entities.car.*;
 import entities.surface.Asphalt;
 import static java.awt.event.KeyEvent.*;
@@ -17,6 +17,7 @@ import org.jbox2d.dynamics.Body;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import shiffman.box2d.*;
+import util.Skybox;
 import static util.input.Input.consumeInput;
 
 /**
@@ -29,12 +30,14 @@ public final class Game {
     public static Path path;
     
     public static Asphalt asphalt;
+    public static Skybox skybox;
     
     private static PGraphics trackMarksLayer;
+    private static PImage trackMarksImg, asph;
     
     public static ArrayList<Car> cars = new ArrayList<>();
     public static ArrayList<AI_Car> aiCars = new ArrayList<>();
-    public static ArrayList<Building> buildings = new ArrayList<>();
+    public static ArrayList<Block> blocks = new ArrayList<>();
     
     protected static Body cameraTarget;
     private static final Vec2 cameraTranslation = new Vec2(0, 0);
@@ -48,10 +51,28 @@ public final class Game {
     protected static void init() {
         g = c.g;
         trackMarksLayer = c.createGraphics(WIDTH, HEIGHT);
+        trackMarksLayer.beginDraw();
+        //trackMarksImg = trackMarksLayer.get();
         initAll();
+        c.perspective(PI/3.0f, 1.f*WIDTH/HEIGHT, 3, 2000);
+        skybox = getSkybox(SUNNY_SKYBOX);
+        
+        asph = getTextureImage(ASPHALT_TEX);
+        
+        asph.loadPixels();
+        for(int i=0; i<asph.pixels.length; i++) {
+            int pix = asph.pixels[i];
+            //asph.pixels[i] = c.color(2f*c.red(pix), 1.0f*c.green(pix), 0.6f*c.blue(pix));
+            asph.pixels[i] = c.color(1.2f*c.red(pix), 1.2f*c.green(pix), 1.2f*c.blue(pix));
+        }
+        asph.updatePixels();
+        //asph.filter(DILATE);
+//        /trackMarksLayer.image(asph, 0, 0, 2*WIDTH, 2*HEIGHT);
+        for(int i=0; i<20; i++) for(int j=0; j<20; j++) trackMarksLayer.image(asph, i*WIDTH/20, j*HEIGHT/20, WIDTH/20, HEIGHT/20);
     }
     
     protected static void tick() {
+        trackMarksLayer.beginDraw();
         
         for(AI_Car ai : aiCars) ai.checkFront();
         updatePathDebug();
@@ -63,41 +84,41 @@ public final class Game {
         
     protected static void render() {
         
-        trackMarksLayer.beginDraw();
+        cameraZ = constrain(cameraZ, 300, 1000);
         
-        transformCamera(g);
+        c.translate(WIDTH/2, HEIGHT/2, cameraZ);
+        
+        if(tiltCamera) c.rotateX(PI/2.3f);
+        else c.rotateX(PI/7f);
+        
+        c.rotateZ(cameraAngle);
+        c.translate(-WIDTH/2, -HEIGHT/2, -cameraZ);
+        
+        skybox.render(g);
+        
+        //if(true) return;
+        c.translate(-cameraTranslation.x, -cameraTranslation.y, cameraZ);
+        
+        //c.background(120, 160, 180);
+        c.ambientLight(100, 100, 100);
+        c.directionalLight(220, 220, 220, -1, 1, -1);
+        //c.directionalLight(255, 255, 255, -1, 1, -1);
 
-        asphalt.render();
         cars.forEach(car -> car.render(g));
 
         cars.forEach(car -> car.updateTrackMarks(trackMarksLayer));
 
-        buildings.forEach(b -> b.render(g));
+        blocks.forEach(b -> b.render(g));
         c.fill(0);
-        path.render();
+        //path.render();
 
         c.stroke(0);
 
-        c.image(trackMarksLayer, 0, 0, WIDTH, HEIGHT);
+        c.image(trackMarksLayer, 0, 0, WIDTH, HEIGHT);//-WIDTH/2, -HEIGHT/2, 2*WIDTH, 2*HEIGHT);
         
         trackMarksLayer.endDraw();
-    }
-    
-    private static void transformCamera(PGraphics g) {
-        g.frustum(-5, 5, -5, 5, 3, 500);
-
-        cameraZ = constrain(cameraZ, 300, 1000);
         
-        g.translate(WIDTH/2, HEIGHT/2, cameraZ);
-        
-        if(tiltCamera) c.rotateX(PI/3f);
-        g.rotateZ(cameraAngle);
-        g.translate(-WIDTH/2, -HEIGHT/2);
-        g.translate(-cameraTranslation.x, -cameraTranslation.y);
-        
-        g.background(120, 160, 180);
-        g.ambientLight(100, 100, 100);
-        g.directionalLight(255, 255, 255, -1, 1, -1);
+        //System.out.println(c.frameRate);
     }
     
     private static void updatePathDebug() {
@@ -125,17 +146,20 @@ public final class Game {
         }
         
         if(consumeInput(VK_K)) {
-            Building b = new Building(pos.x, pos.y, 0, 10, 10, 10);
-            buildings.add(b);
+            Block b = new Block(pos.x, pos.y, 0, 10, 10, 10, false);
+            blocks.add(b);
         }
     }
     
     private static void updateCamera() {
         Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition());
         cameraAngle += (cameraTarget.getAngle()-PI/2 - cameraAngle)/20.;
-        cameraTranslation.set(pos.x-WIDTH/2, pos.y-HEIGHT/2);
-        if(consumeInput(VK_Z)) cameraZ += 20;
-        if(consumeInput(VK_X)) cameraZ -= 20;
+        Vec2 newCamTrans = new Vec2(pos.x-WIDTH/2, pos.y-HEIGHT/2), deltaCamTrans = newCamTrans.sub(cameraTranslation);
+        //trackMarksLayer.image(trackMarksImg, deltaCamTrans.x, deltaCamTrans.y);
+        //trackMarksLayer.translate(deltaCamTrans.x, deltaCamTrans.y);
+        cameraTranslation.set(newCamTrans);
+        if(consumeInput(VK_Z)) cameraZ += 60;
+        if(consumeInput(VK_X)) cameraZ -= 60;
         if(consumeInput(VK_T)) tiltCamera = !tiltCamera;
     }
     
@@ -162,5 +186,13 @@ public final class Game {
         Vec2 xy = box2d.vectorWorldToPixels(new Vec2(vec.x, vec.y));
         float z = box2d.scalarWorldToPixels(vec.z);
         return new Vec3(xy.x, xy.y, z);
+    }
+    
+    public static float getCameraTranslationX() {
+        return 0;//-WIDTH/2;//-cameraTranslation.x;
+    }
+    
+    public static float getCameraTranslationY() {
+        return 0;//-HEIGHT/2;//-cameraTranslation.y;
     }
 }

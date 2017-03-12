@@ -35,10 +35,15 @@ public final class UserCar extends Car {
     private void processInput() {
         
         boolean[] inputs = consumeInput(new int[]{VK_UP, VK_DOWN, VK_R});
+        brake = isMousePressed(LEFT);
+        
+        //System.out.println(brake);
         
         if(inputs[0]) throttle += 0.1f;
         if(inputs[1]) throttle -= 0.1f;
         if(inputs[2]) reverse = !reverse;
+        
+        throttle -= 0.3f*consumeMouseWheel();
         
         Vec2 target = coordPixelsToWorld(new Vec2(c.mouseX, c.mouseY));
         dir = target.sub(frontAxle.axle.getWorldCenter());

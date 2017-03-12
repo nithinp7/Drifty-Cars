@@ -20,7 +20,7 @@ public abstract class Car implements Drawable {
                  throttle = 0,
                  maxTurnTorque = 10000;
     
-    public boolean reverse = false;
+    public boolean reverse = false, brake = false;
     
     public final Body chasis;
     public final Axle frontAxle, rearAxle;
@@ -69,8 +69,8 @@ public abstract class Car implements Drawable {
     public void update() {
         updateSteering();
         drive();
-        frontAxle.update();
-        rearAxle.update();
+        frontAxle.update(brake);
+        rearAxle.update(brake);
     }
     
     private void drive() {
@@ -93,6 +93,7 @@ public abstract class Car implements Drawable {
         frontAxle.render(g);
         rearAxle.render(g);
         g.pushMatrix();
+        g.pushStyle();
             Vec2 pos = box2d.coordWorldToPixels(chasis.getPosition());
             g.translate(pos.x, pos.y, h+box2d.scalarWorldToPixels(0.5f));
             g.rotate(-chasis.getAngle());
@@ -101,11 +102,20 @@ public abstract class Car implements Drawable {
             g.strokeWeight(1.5f);
             g.stroke(30, 40, 30);
             g.box(l_pixels, w_pixels, h_pixels);
+//            g.translate(l_pixels, w_pixels/4);
+//            g.emissive(150, 20, 20);
+//            g.fill(200, 20, 20);
+//            g.noStroke();
+//            g.sphere(w_pixels);
+//            g.emissive(0);
+//            g.translate(0, -w_pixels/2);
+//            g.sphere(w_pixels);
+        g.popStyle();
         g.popMatrix();
     }
     
     public void updateTrackMarks(PGraphics g) {
-        frontAxle.updateTrackMarks(g);
-        rearAxle.updateTrackMarks(g);
+        frontAxle.updateTrackMarks(g, brake);
+        rearAxle.updateTrackMarks(g, brake);
     }
 }

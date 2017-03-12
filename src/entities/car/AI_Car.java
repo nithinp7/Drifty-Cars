@@ -7,7 +7,6 @@ import ai.Path.PathSegment;
 import java.util.Optional;
 import static main.Game.*;
 import org.jbox2d.common.Vec2;
-import static org.jbox2d.common.Vec2.dot;
 import static processing.core.PApplet.*;
 import processing.core.PGraphics;
 

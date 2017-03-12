@@ -34,7 +34,7 @@ public final class Asphalt {
         
         for(int i=0; i<size.x/tileSize.x; i++) {
             for(int j=0; j<size.y/tileSize.y; j++) {
-                textures[(int)(i*size.y/tileSize.y+j)] = new Texture(ASPHALT_TEX_URL, new Vec2[] { new Vec2(0, 0), new Vec2(1, 0), new Vec2(1, 1), new Vec2(0, 1) }, new Vec3(loc.x+i*tileSize.x, loc.y+j*tileSize.y, 0), new Vec3[]{ new Vec3(0, 0, 0), new Vec3(tileSize.x, 0, 0), new Vec3(tileSize.x, tileSize.y, 0), new Vec3(0, tileSize.y, 0) });
+                textures[(int)(i*size.y/tileSize.y+j)] = new Texture(ASPHALT_TEX, new Vec2[] { new Vec2(0, 0), new Vec2(1, 0), new Vec2(1, 1), new Vec2(0, 1) }, new Vec3(loc.x+i*tileSize.x, loc.y+j*tileSize.y, 0), new Vec3[]{ new Vec3(0, 0, 0), new Vec3(tileSize.x, 0, 0), new Vec3(tileSize.x, tileSize.y, 0), new Vec3(0, tileSize.y, 0) });
             }
         }
     }

@@ -1,7 +1,7 @@
 
 package main;
 
-import entities.building.Building;
+import entities.building.Block;
 import entities.car.UserCar;
 import entities.surface.Asphalt;
 import static main.Game.*;
@@ -21,6 +21,7 @@ public final class Init {
     
     public static void initAll() {
         initTextures();
+        initSkyboxes();
         initPhysics();
         initAI();
         initMap();
@@ -49,9 +50,14 @@ public final class Init {
     }
     
     private static void initBuildings() {
-        buildings.add(new Building(0, 150, 0, 280, 20, 10));
-        buildings.add(new Building(0, -150, 0, 280, 20, 10));
-        buildings.add(new Building(-150, 0, 0, 20, 300, 10));
-        buildings.add(new Building(150, 0, 0, 20, 300, 10));
+//        buildings.add(new Building(0, 150, 0, 280, 20, 10));
+//        buildings.add(new Building(0, -150, 0, 280, 20, 10));
+//        buildings.add(new Building(-150, 0, 0, 20, 300, 10));
+//        buildings.add(new Building(150, 0, 0, 20, 300, 10));
+        
+        blocks.add(new Block(0, 280, 0, 660, 20, 25, true));
+        blocks.add(new Block(0, -280, 0, 660, 20, 25, true));
+        blocks.add(new Block(-340, 0, 0, 20, 620, 25, true));
+        blocks.add(new Block(340, 0, 0, 20, 620, 25, true));
     }
 }

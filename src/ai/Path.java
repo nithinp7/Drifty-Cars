@@ -171,9 +171,11 @@ public final class Path {
     }
     
     public void render() {
-        nodes.forEach(node -> node.render());
-        segments.forEach(segment -> segment.render());
-        tempSegments.forEach(segment -> segment.render());
+        c.pushStyle();
+            nodes.forEach(node -> node.render());
+            segments.forEach(segment -> segment.render());
+            tempSegments.forEach(segment -> segment.render());
+        c.popStyle();
     }
     
     public void clear() {

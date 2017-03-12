@@ -4,6 +4,7 @@ package main;
 import processing.core.PApplet;
 import static main.Game.*;
 import processing.event.KeyEvent;
+import processing.event.MouseEvent;
 import static util.Constants.*;
 import util.input.Input;
 
@@ -21,13 +22,17 @@ public final class Main extends PApplet {
     
     @Override
     public void settings() {
-        size(WIDTH, HEIGHT, P3D);
+        fullScreen(P3D);
+        //size(WIDTH, HEIGHT, P3D);
+        
     }
     
     @Override
     public void setup() {
         frameRate(FPS);
         c = this;
+        WIDTH = width;
+        HEIGHT = height;
         init();
     }
     
@@ -50,5 +55,20 @@ public final class Main extends PApplet {
     @Override
     public void keyTyped(KeyEvent ke) {
         Input.keyTyped(ke);
+    }
+    
+    @Override
+    public void mousePressed(MouseEvent me) {
+        Input.mousePressed(me);
+    }
+    
+    @Override
+    public void mouseReleased(MouseEvent me) {
+        Input.mouseReleased(me);
+    }
+    
+    @Override
+    public void mouseWheel(MouseEvent me) {
+        Input.mouseWheelMoved(me);
     }
 }
