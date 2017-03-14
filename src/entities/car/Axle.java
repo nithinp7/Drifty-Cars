@@ -1,6 +1,7 @@
 
 package entities.car;
 
+import entities.surface.Floor;
 import static main.Main.*;
 import static main.Game.*;
 import static util.Constants.*;
@@ -87,7 +88,7 @@ public final class Axle implements Drawable {
         
         FrictionJointDef fd = new FrictionJointDef();
         fd.bodyA = axle;
-        fd.bodyB = asphalt.floor;
+        fd.bodyB = floor.floor;
         fd.localAnchorA.set(wheelA);
         fd.localAnchorB.set(0, 0);
         fd.maxForce = 1000;
@@ -188,7 +189,9 @@ public final class Axle implements Drawable {
         return slideSpeed;
     }
     
-    protected void updateTrackMarks(PGraphics g, boolean brake) {
+    protected void updateTrackMarks(boolean brake) {
+        PGraphics g = floor.getFloorLayer();
+        
         g.pushStyle();
             g.strokeWeight(1.5f);
             //g.stroke(110, 90, 140, 35);
@@ -201,8 +204,8 @@ public final class Axle implements Drawable {
                  pixPosR = box2d.coordWorldToPixels(posR),
                  pixPosL = box2d.coordWorldToPixels(posL);
             
-            if(!(slideSpeed < 5.52f || prevPosR.sub(pixPosR).length() > 8 || prevPosL.sub(pixPosL).length() > 8) || (brake && chasis.getLinearVelocity().length() > 55)) {
-                float camTransX = 0/*getCameraTranslationX()*/, camTransY = 0;//getCameraTranslationY();
+            if(!(slideSpeed < 7.02f || prevPosR.sub(pixPosR).length() > 8 || prevPosL.sub(pixPosL).length() > 8) || (brake && chasis.getLinearVelocity().length() > 55)) {
+                float camTransX = floor.getTransX(), camTransY = floor.getTransY();
                 g.line(prevPosR.x-camTransX, prevPosR.y-camTransY, pixPosR.x-camTransX, pixPosR.y-camTransY);
                 g.line(prevPosL.x-camTransX, prevPosL.y-camTransY, pixPosL.x-camTransX, pixPosL.y-camTransY);
             }

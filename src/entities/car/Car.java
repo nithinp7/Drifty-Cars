@@ -85,12 +85,13 @@ public abstract class Car implements Drawable {
     private void drive() {
         throttle = constrain(throttle, 0, 1);
         float speed = getForwardSpeed();//chasis.getLinearVelocity().length();
-        float dist = getDistanceToAudioListener(chasis.getPosition());
-        float vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.45f);
-        float pitch = (throttle*0.3f+constrain(speed, 0, 20)*0.7f*0.05f)*1.2f + 0.8f;
+        Vec2 pos = chasis.getPosition();
+        float dist = getDistanceToAudioListener(pos.x, pos.y, 0);
+        float vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.25f);
+        float pitch = (throttle*0.2f+constrain(speed, 0, 20)*0.7f*0.05f)*3.5f + 0.1f*sin(c.millis()/450.0f)*sin(c.millis()/250.f)+0.3f;
         engine.gainGlide.setGlideTime(50);
         engine.gainGlide.setValue(vol*0.45f);
-        engine.pitchGlide.setGlideTime(500);
+        engine.pitchGlide.setGlideTime(1800);
         //engine.pitchGlide.setValue(map(speed, 0, 10, 0.8f, 1.6f));
         engine.pitchGlide.setValue(pitch);
         
@@ -102,7 +103,7 @@ public abstract class Car implements Drawable {
         skidSound.pitchGlide.setValue(skidVolume*vol*0.6f+0.85f);
         
         float theta = frontAxle.axle.getAngle();
-        frontAxle.axle.applyForceToCenter(new Vec2(cos(theta), sin(theta)).mul(42000 * throttle * (reverse ? -1 : 1)));
+        frontAxle.axle.applyForceToCenter(new Vec2(cos(theta), sin(theta)).mul(72000 * throttle * (reverse ? -1 : 1)));
     }
     
     private void updateSteering() {
@@ -114,7 +115,7 @@ public abstract class Car implements Drawable {
         return frontAxle.getForwardSpeed();
     }
     public float getSlideSpeed() {
-        return frontAxle.getSlideSpeed();
+        return min(frontAxle.getSlideSpeed(), rearAxle.getSlideSpeed());
     }
     
     @Override
@@ -143,8 +144,8 @@ public abstract class Car implements Drawable {
         g.popMatrix();
     }
     
-    public void updateTrackMarks(PGraphics g) {
-        frontAxle.updateTrackMarks(g, brake);
-        rearAxle.updateTrackMarks(g, brake);
+    public void updateTrackMarks() {
+        frontAxle.updateTrackMarks(brake);
+        rearAxle.updateTrackMarks(brake);
     }
 }

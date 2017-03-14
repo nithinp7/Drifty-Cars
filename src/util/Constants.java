@@ -34,8 +34,8 @@ public final class Constants {
             EPSILON = 0.001f,
             EPSILON_SQUARED = EPSILON*EPSILON,
 
-            RUBBER_ASPHALT_KF = 9f,
-            RUBBER_ASPHALT_SF = 12f;
+            RUBBER_ASPHALT_KF = 6f,
+            RUBBER_ASPHALT_SF = 8f;
     
     public static final String
             AI_PATH_URL = "./res/cache/ai_path.json";
@@ -71,7 +71,7 @@ public final class Constants {
             CAR_SKID = 1;
     
     private static final String[] SOUND_URLS = {
-        "/car.wav",
+        "/carEngine.wav",
         "/carSkid.wav"
     };
     

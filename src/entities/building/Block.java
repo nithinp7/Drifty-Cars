@@ -54,7 +54,7 @@ public final class Block implements Drawable {
         
         FrictionJointDef fric = new FrictionJointDef();
         fric.bodyA = body;
-        fric.bodyB = asphalt.floor;
+        fric.bodyB = floor.floor;
         fric.localAnchorA.set(0, 0);
         fric.localAnchorB.set(0, 0);
         fric.maxForce = 3400;

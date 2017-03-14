@@ -3,7 +3,6 @@ package main;
 
 import entities.building.Block;
 import entities.car.UserCar;
-import entities.surface.Asphalt;
 import static main.Game.*;
 import static main.Main.c;
 import org.jbox2d.common.Vec2;
@@ -13,6 +12,7 @@ import ai.Path;
 import beads.AudioContext;
 import beads.Gain;
 import entities.car.Car;
+import entities.surface.Floor;
 import static util.Constants.*;
 
 /**
@@ -29,7 +29,7 @@ public final class Init {
         initAI();
         initMap();
         initVehicles();
-        initBuildings();
+        //initBuildings();
     }
     
     private static void initSounds() {
@@ -53,7 +53,7 @@ public final class Init {
     }
     
     private static void initMap() {
-        asphalt = new Asphalt(new Vec2(-150, -150), new Vec2(300, 300), new Vec2(20, 20));
+        floor = new Floor(new Vec2(-150, -150), new Vec2(300, 300), new Vec2(20, 20));
     }
     
     private static void initVehicles() {
@@ -63,10 +63,6 @@ public final class Init {
     }
     
     private static void initBuildings() {
-//        buildings.add(new Building(0, 150, 0, 280, 20, 10));
-//        buildings.add(new Building(0, -150, 0, 280, 20, 10));
-//        buildings.add(new Building(-150, 0, 0, 20, 300, 10));
-//        buildings.add(new Building(150, 0, 0, 20, 300, 10));
         
         blocks.add(new Block(0, 280, 0, 660, 20, 25, true));
         blocks.add(new Block(0, -280, 0, 660, 20, 25, true));
