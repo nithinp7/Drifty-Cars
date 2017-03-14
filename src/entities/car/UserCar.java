@@ -43,7 +43,7 @@ public final class UserCar extends Car {
         if(inputs[1]) throttle -= 0.1f;
         if(inputs[2]) reverse = !reverse;
         
-        throttle -= 0.3f*consumeMouseWheel();
+        throttle -= 0.12f*consumeMouseWheel();
         
         Vec2 target = coordPixelsToWorld(new Vec2(c.mouseX, c.mouseY));
         dir = target.sub(frontAxle.axle.getWorldCenter());

@@ -71,4 +71,11 @@ public final class Main extends PApplet {
     public void mouseWheel(MouseEvent me) {
         Input.mouseWheelMoved(me);
     }
+    
+    @Override
+    public void exit() {
+        System.out.println("Exiting");
+        closeSounds();
+        super.exit();
+    }
 }

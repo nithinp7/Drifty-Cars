@@ -3,6 +3,8 @@ package main;
 
 import ai.PID;
 import ai.Path;
+import beads.AudioContext;
+import beads.Gain;
 import entities.building.Block;
 import entities.car.*;
 import entities.surface.Asphalt;
@@ -35,6 +37,9 @@ public final class Game {
     private static PGraphics trackMarksLayer;
     private static PImage trackMarksImg, asph;
     
+    public static AudioContext ac;
+    public static Gain gain;
+    
     public static ArrayList<Car> cars = new ArrayList<>();
     public static ArrayList<AI_Car> aiCars = new ArrayList<>();
     public static ArrayList<Block> blocks = new ArrayList<>();
@@ -42,6 +47,8 @@ public final class Game {
     protected static Body cameraTarget;
     private static final Vec2 cameraTranslation = new Vec2(0, 0);
     private static float cameraAngle = 0;
+    
+    private static final Vec2 audioListener = new Vec2(0, 0);
     
     private static boolean tiltCamera = false;
     private static int cameraZ = 0;
@@ -57,24 +64,41 @@ public final class Game {
         c.perspective(PI/3.0f, 1.f*WIDTH/HEIGHT, 3, 2000);
         skybox = getSkybox(SUNNY_SKYBOX);
         
-        asph = getTextureImage(ASPHALT_TEX);
+//        trackMarksLayer.fill(120, 160, 180, 255);
+        trackMarksLayer.fill(200, 220, 240, 255);
+
         
-        asph.loadPixels();
-        for(int i=0; i<asph.pixels.length; i++) {
-            int pix = asph.pixels[i];
-            //asph.pixels[i] = c.color(2f*c.red(pix), 1.0f*c.green(pix), 0.6f*c.blue(pix));
-            asph.pixels[i] = c.color(1.2f*c.red(pix), 1.2f*c.green(pix), 1.2f*c.blue(pix));
-        }
-        asph.updatePixels();
+        trackMarksLayer.rect(0, 0, WIDTH, HEIGHT);
+        
+//        trackMarksLayer.beginShape();
+//        
+//        trackMarksLayer.vertex(0, 0);
+//        trackMarksLayer.vertex(WIDTH, 0);
+//        trackMarksLayer.vertex(WIDTH, HEIGHT);
+//        trackMarksLayer.vertex(0, 2*HEIGHT);
+//        
+//        trackMarksLayer.beginShape();
+//        
+//        asph = getTextureImage(ASPHALT_TEX);
+//        
+//        asph.loadPixels();
+//        for(int i=0; i<asph.pixels.length; i++) {
+//            int pix = asph.pixels[i];
+//            //asph.pixels[i] = c.color(2f*c.red(pix), 1.0f*c.green(pix), 0.6f*c.blue(pix));
+//            asph.pixels[i] = c.color(1.2f*c.red(pix), 1.2f*c.green(pix), 1.2f*c.blue(pix));
+//        }
+//        asph.updatePixels();
         //asph.filter(DILATE);
 //        /trackMarksLayer.image(asph, 0, 0, 2*WIDTH, 2*HEIGHT);
-        for(int i=0; i<20; i++) for(int j=0; j<20; j++) trackMarksLayer.image(asph, i*WIDTH/20, j*HEIGHT/20, WIDTH/20, HEIGHT/20);
+//        for(int i=0; i<20; i++) for(int j=0; j<20; j++) trackMarksLayer.image(asph, i*WIDTH/20, j*HEIGHT/20, WIDTH/20, HEIGHT/20);
     }
     
     protected static void tick() {
         trackMarksLayer.beginDraw();
         
-        for(AI_Car ai : aiCars) ai.checkFront();
+        audioListener.set(cameraTarget.getPosition());
+        
+        aiCars.forEach(ai -> ai.checkFront());
         updatePathDebug();
         updateAI_Debug();
         updateCamera();
@@ -188,11 +212,7 @@ public final class Game {
         return new Vec3(xy.x, xy.y, z);
     }
     
-    public static float getCameraTranslationX() {
-        return 0;//-WIDTH/2;//-cameraTranslation.x;
-    }
-    
-    public static float getCameraTranslationY() {
-        return 0;//-HEIGHT/2;//-cameraTranslation.y;
+    public static float getDistanceToAudioListener(Vec2 coord) {
+        return coord.sub(audioListener).length();
     }
 }

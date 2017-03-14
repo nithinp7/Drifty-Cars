@@ -33,7 +33,7 @@ public final class Axle implements Drawable {
     
     final float spacing, spacing_pixels, radius, radius_pixels, thickness, thickness_pixels;
     
-    private float slideSpeed = 0;
+    private float slideSpeed = 0, forwardSpeed = 0;
     
     private final PShape wheelShapeA, wheelShapeB;
     
@@ -111,8 +111,8 @@ public final class Axle implements Drawable {
     
     @Override
     public void render(PGraphics g) {
-        float angle = axle.getAngle();
-        float forwardSpeed = Vec2.dot(new Vec2(cos(angle), sin(angle)), axle.getLinearVelocity());
+        //float angle = axle.getAngle();
+        //float forwardSpeed = Vec2.dot(new Vec2(cos(angle), sin(angle)), axle.getLinearVelocity());
         float pixSpeed = box2d.scalarWorldToPixels(forwardSpeed)/FPS;
         float omega = pixSpeed/radius_pixels;
         g.pushMatrix();
@@ -151,6 +151,8 @@ public final class Axle implements Drawable {
         
         float vp = Vec2.dot(dir, v);
         
+        forwardSpeed = vp;
+        
         Vec2 vP = new Vec2(dir.x*vp, dir.y*vp),
              vL = new Vec2(v.x-vP.x, v.y-vP.y);
         
@@ -178,6 +180,10 @@ public final class Axle implements Drawable {
         }
     }
     
+    protected float getForwardSpeed() {
+        return forwardSpeed;
+    }
+    
     protected float getSlideSpeed() {
         return slideSpeed;
     }
@@ -195,11 +201,10 @@ public final class Axle implements Drawable {
                  pixPosR = box2d.coordWorldToPixels(posR),
                  pixPosL = box2d.coordWorldToPixels(posL);
             
-            if(!(slideSpeed < 1.5f || prevPosR.sub(pixPosR).length() > 8 || prevPosL.sub(pixPosL).length() > 8) || (brake && chasis.getLinearVelocity().length() > 55)) {
-                float camTransX = getCameraTranslationX(), camTransY = getCameraTranslationY();
+            if(!(slideSpeed < 5.52f || prevPosR.sub(pixPosR).length() > 8 || prevPosL.sub(pixPosL).length() > 8) || (brake && chasis.getLinearVelocity().length() > 55)) {
+                float camTransX = 0/*getCameraTranslationX()*/, camTransY = 0;//getCameraTranslationY();
                 g.line(prevPosR.x-camTransX, prevPosR.y-camTransY, pixPosR.x-camTransX, pixPosR.y-camTransY);
                 g.line(prevPosL.x-camTransX, prevPosL.y-camTransY, pixPosL.x-camTransX, pixPosL.y-camTransY);
-                
             }
             
             prevPosR.set(pixPosR);

@@ -8,6 +8,9 @@ import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 import processing.core.PGraphics;
+import static util.Constants.*;
+import static util.Constants.createSound;
+import util.audio.SampleControls;
 import util.interfaces.Drawable;
 
 /**
@@ -28,6 +31,7 @@ public abstract class Car implements Drawable {
     private final float l, l_pixels, w, w_pixels, h, h_pixels;
     
     private final Color color;
+    private final SampleControls engine, skidSound;
     
     public Car(float x, float y, float theta, float l, float w, float h) {
         
@@ -60,6 +64,11 @@ public abstract class Car implements Drawable {
         rearAxle = new Axle(1.5f*w, l/7, 0.6f, theta, chasis, -l/4, 0, 0);
         
         color = new Color((int)c.random(150, 250), (int)c.random(150, 250), (int)c.random(150, 250));
+        
+        engine = createSound(CAR_ENGINE);
+        skidSound = createSound(CAR_SKID);
+        
+        skidSound.pitchGlide.setValue(1f);
     }
     
     public Car(Vec2 loc, float theta, float l, float w, float h) {
@@ -75,8 +84,25 @@ public abstract class Car implements Drawable {
     
     private void drive() {
         throttle = constrain(throttle, 0, 1);
+        float speed = getForwardSpeed();//chasis.getLinearVelocity().length();
+        float dist = getDistanceToAudioListener(chasis.getPosition());
+        float vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.45f);
+        float pitch = (throttle*0.3f+constrain(speed, 0, 20)*0.7f*0.05f)*1.2f + 0.8f;
+        engine.gainGlide.setGlideTime(50);
+        engine.gainGlide.setValue(vol*0.45f);
+        engine.pitchGlide.setGlideTime(500);
+        //engine.pitchGlide.setValue(map(speed, 0, 10, 0.8f, 1.6f));
+        engine.pitchGlide.setValue(pitch);
+        
+        float slideSpeed = getSlideSpeed();
+        float skidVolume = slideSpeed < 5.52 ? 0 : constrain(slideSpeed/14.0f, 0, 0.1f);
+        skidSound.gainGlide.setGlideTime(400);
+        skidSound.gainGlide.setValue(skidVolume*vol);
+        skidSound.pitchGlide.setGlideTime(250);
+        skidSound.pitchGlide.setValue(skidVolume*vol*0.6f+0.85f);
+        
         float theta = frontAxle.axle.getAngle();
-        frontAxle.axle.applyForceToCenter(new Vec2(cos(theta), sin(theta)).mul(22000 * throttle * (reverse ? -1 : 1)));
+        frontAxle.axle.applyForceToCenter(new Vec2(cos(theta), sin(theta)).mul(42000 * throttle * (reverse ? -1 : 1)));
     }
     
     private void updateSteering() {
@@ -84,8 +110,11 @@ public abstract class Car implements Drawable {
         frontAxle.axle.applyTorque(turn*maxTurnTorque);
     }
     
+    public float getForwardSpeed() {
+        return frontAxle.getForwardSpeed();
+    }
     public float getSlideSpeed() {
-        return rearAxle.getSlideSpeed();
+        return frontAxle.getSlideSpeed();
     }
     
     @Override

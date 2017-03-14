@@ -10,6 +10,8 @@ import org.jbox2d.common.Vec2;
 import static processing.core.PConstants.PI;
 import shiffman.box2d.Box2DProcessing;
 import ai.Path;
+import beads.AudioContext;
+import beads.Gain;
 import entities.car.Car;
 import static util.Constants.*;
 
@@ -20,6 +22,7 @@ import static util.Constants.*;
 public final class Init {
     
     public static void initAll() {
+        initSounds();
         initTextures();
         initSkyboxes();
         initPhysics();
@@ -27,6 +30,16 @@ public final class Init {
         initMap();
         initVehicles();
         initBuildings();
+    }
+    
+    private static void initSounds() {
+        
+        ac = new AudioContext();
+        gain = new Gain(ac, 2, 0.2f);
+        ac.out.addInput(gain);
+        ac.start();
+        
+        initSamples();
     }
     
     private static void initAI() {

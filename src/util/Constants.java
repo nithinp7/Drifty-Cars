@@ -1,10 +1,18 @@
 
 package util;
 
+import beads.Gain;
+import beads.Glide;
+import beads.Sample;
+import beads.SampleManager;
+import beads.SamplePlayer;
 import java.util.ArrayList;
+import static main.Game.ac;
+import static main.Game.gain;
 import static main.Main.c;
 import processing.core.PImage;
 import processing.opengl.PShader;
+import util.audio.SampleControls;
 
 /**
  *
@@ -26,8 +34,8 @@ public final class Constants {
             EPSILON = 0.001f,
             EPSILON_SQUARED = EPSILON*EPSILON,
 
-            RUBBER_ASPHALT_KF = 4f,//7f,
-            RUBBER_ASPHALT_SF = 6f;//9f;
+            RUBBER_ASPHALT_KF = 9f,
+            RUBBER_ASPHALT_SF = 12f;
     
     public static final String
             AI_PATH_URL = "./res/cache/ai_path.json";
@@ -58,12 +66,23 @@ public final class Constants {
         "./res/shaders/shadowFrag.glsl ./res/shaders/shadowVert.glsl"
     };
     
+    public static final int
+            CAR_ENGINE = 0,
+            CAR_SKID = 1;
+    
+    private static final String[] SOUND_URLS = {
+        "/car.wav",
+        "/carSkid.wav"
+    };
+    
     private static final ArrayList<PImage> textures = new ArrayList<>();
     private static final ArrayList<PShader> shaders = new ArrayList<>();
     
     private static final ArrayList<Skybox> skyboxes = new ArrayList<>();
     
-    
+    public static final ArrayList<Sample> samples = new ArrayList<>();
+    public static final ArrayList<SampleControls> samplePlayers = new ArrayList<>();
+   
     public static void initTextures() {
         if(textures.isEmpty()) for(String tex_url : TEX_URLS) textures.add(c.loadImage(tex_url));
     }
@@ -103,5 +122,37 @@ public final class Constants {
     
     public static PShader getShader(int index) {
         return shaders.get(index);
+    }
+    
+    public static void initSamples() {
+        if(samples.isEmpty()) for(String url : SOUND_URLS) samples.add(SampleManager.sample(c.dataPath("")+url));
+    }
+    
+    public static SampleControls createSound(int id) {
+        if(id >= samples.size()) return null;
+        SamplePlayer sp = new SamplePlayer(ac, samples.get(id));
+        
+        Glide pGlide = new Glide(ac),
+              gGlide = new Glide(ac);
+        
+        Gain vol = new Gain(ac, 2, gGlide);
+        
+        vol.addInput(sp);
+        sp.setPitch(pGlide);
+        
+        SampleControls sc = new SampleControls(vol, gGlide, pGlide, sp);
+        
+        sp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
+        
+        ac.out.addInput(vol);
+        
+        samplePlayers.add(sc);
+        return sc;
+    }
+    
+    public static void closeSounds() {
+        samplePlayers.forEach(sp -> sp.player.kill());
+        samples.forEach(s -> s.clear());
+        ac.stop();
     }
 }
