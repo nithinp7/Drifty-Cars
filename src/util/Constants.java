@@ -8,7 +8,6 @@ import beads.SampleManager;
 import beads.SamplePlayer;
 import java.util.ArrayList;
 import static main.Game.ac;
-import static main.Game.gain;
 import static main.Main.c;
 import processing.core.PImage;
 import processing.opengl.PShader;
@@ -24,7 +23,10 @@ public final class Constants {
             WIDTH = 800, 
             HEIGHT = 640,
 
-            FPS = 30;
+            FPS = 30,
+            
+            TYPE_CAR = 0,
+            TYPE_BUILDING = 1;
     
     public static final float
             TIMESTEP = 1.f/FPS,
@@ -49,11 +51,13 @@ public final class Constants {
     
     public static final int
             CLOUDY_SKYBOX = 0,
-            SUNNY_SKYBOX = 1;
+            SUNNY_SKYBOX = 1,
+            FLATLAND_SKYBOX = 2;
     
     private static final String[] SKYBOX_FOLDERS = {
         "./res/skyboxes/cloudy png",
-        "./res/skyboxes/sunny png"
+        "./res/skyboxes/sunny png",
+        "./res/skyboxes/flatland png"
     };
     
     public static final int
@@ -68,11 +72,13 @@ public final class Constants {
     
     public static final int
             CAR_ENGINE = 0,
-            CAR_SKID = 1;
+            CAR_SKID = 1,
+            CAR_CRASH = 2;
     
     private static final String[] SOUND_URLS = {
         "/carEngine.wav",
-        "/carSkid.wav"
+        "/carSkid.wav",
+        "/carCrash.wav"
     };
     
     private static final ArrayList<PImage> textures = new ArrayList<>();
@@ -128,8 +134,8 @@ public final class Constants {
         if(samples.isEmpty()) for(String url : SOUND_URLS) samples.add(SampleManager.sample(c.dataPath("")+url));
     }
     
-    public static SampleControls createSound(int id) {
-        if(id >= samples.size()) return null;
+    public static SampleControls createSound(int id, boolean loop) {
+        if(id < 0 || id >= samples.size()) return null;
         SamplePlayer sp = new SamplePlayer(ac, samples.get(id));
         
         Glide pGlide = new Glide(ac),
@@ -142,7 +148,7 @@ public final class Constants {
         
         SampleControls sc = new SampleControls(vol, gGlide, pGlide, sp);
         
-        sp.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
+        sp.setLoopType(loop? SamplePlayer.LoopType.LOOP_FORWARDS : SamplePlayer.LoopType.NO_LOOP_FORWARDS);
         
         ac.out.addInput(vol);
         

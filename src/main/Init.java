@@ -14,6 +14,7 @@ import beads.Gain;
 import entities.car.Car;
 import entities.surface.Floor;
 import static util.Constants.*;
+import util.audio.CollisionSounds;
 
 /**
  *
@@ -50,6 +51,8 @@ public final class Init {
         box2d = new Box2DProcessing(c);
         box2d.setScaleFactor(2);
         box2d.createWorld(new Vec2(0, 0));
+        collisionSounds.init();
+        box2d.world.setContactListener(collisionSounds);
     }
     
     private static void initMap() {

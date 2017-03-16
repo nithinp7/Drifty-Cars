@@ -9,6 +9,7 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import static processing.core.PApplet.abs;
+import static processing.core.PConstants.CENTER;
 import processing.core.PGraphics;
 import processing.core.PImage;
 
@@ -20,12 +21,13 @@ public final class Floor {
     
     public final Body floor;
     private final PGraphics floorLayer;
+    public final int w, h;
     
     private final Vec2 floorTrans;// = new Vec2(0, 0);
     
     public Floor(Vec2 loc, Vec2 size, Vec2 tileSize) {
         
-        floorTrans = new Vec2(0, (HEIGHT-WIDTH)*0.5f);
+        floorTrans = new Vec2(0, 0);
         
         BodyDef bd = new BodyDef();
         bd.type = BodyType.STATIC;
@@ -35,44 +37,37 @@ public final class Floor {
         
         floor = box2d.createBody(bd);
         
-        floorLayer = c.createGraphics(WIDTH, WIDTH);
+        w = 1200;
+        h = 1200;
+        
+        floorLayer = c.createGraphics(w, h);
         floorLayer.beginDraw();
         
         floorLayer.fill(200, 220, 240, 255);
         floorLayer.noStroke();
-        floorLayer.rect(0, 0, WIDTH, WIDTH);
+        
+        floorLayer.rect(0, 0, w, h);
         floorLayer.endDraw();
-//        
-//        asph = getTextureImage(ASPHALT_TEX);
-//        
-//        asph.loadPixels();
-//        for(int i=0; i<asph.pixels.length; i++) {
-//            int pix = asph.pixels[i];
-//            //asph.pixels[i] = c.color(2f*c.red(pix), 1.0f*c.green(pix), 0.6f*c.blue(pix));
-//            asph.pixels[i] = c.color(1.2f*c.red(pix), 1.2f*c.green(pix), 1.2f*c.blue(pix));
-//        }
-//        asph.updatePixels();
-        //asph.filter(DILATE);
-//        /trackMarksLayer.image(asph, 0, 0, 2*WIDTH, 2*HEIGHT);
-//        for(int i=0; i<20; i++) for(int j=0; j<20; j++) trackMarksLayer.image(asph, i*WIDTH/20, j*HEIGHT/20, WIDTH/20, HEIGHT/20);
     }
     
     public void update() {
-        float cx = getCamTransX(), cy = getCamTransY()+(HEIGHT-WIDTH)*0.5f;
+        float cx = getCamTransX(), cy = getCamTransY();
         Vec2 dif = new Vec2(cx-floorTrans.x, cy-floorTrans.y);
         
-        if(abs(dif.x) < WIDTH/10 && abs(dif.y) < WIDTH/10) return;
+        if(abs(dif.x) < w/4 && abs(dif.y) < h/4) return;
         
-        PImage temp = floorLayer.get((int)dif.x, (int)dif.y, WIDTH, WIDTH);
-        floorLayer.rect(0, 0, WIDTH, WIDTH);
-        //floorLayer.image(temp, floorTrans.x-dif.x, floorTrans.y-dif.y, WIDTH, HEIGHT);
-        floorLayer.image(temp, 0, 0, WIDTH, WIDTH);
+        PImage temp = floorLayer.get((int)dif.x, (int)dif.y, w, h);
+        floorLayer.rect(0, 0, w, h);
+        floorLayer.image(temp, 0, 0, w, h);
         
         floorTrans.set(cx, cy);
     }
     
     public void render() {
-        c.image(floorLayer, floorTrans.x, floorTrans.y, WIDTH, WIDTH);
+        int imMode = c.g.imageMode;
+        c.imageMode(CENTER);
+        c.image(floorLayer, floorTrans.x+WIDTH/2, floorTrans.y+HEIGHT/2, w, h);
+        c.imageMode(imMode);
     }
     
     public PGraphics getFloorLayer() {

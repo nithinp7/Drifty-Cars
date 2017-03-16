@@ -71,10 +71,6 @@ public final class FrontObstacleDetector implements RayCastCallback {
         }
     }
     
-    private Vec2 copy(Vec2 v) {
-        return new Vec2(v.x, v.y);
-    }
-    
     private void raycast(Vec2 p1, Vec2 p2) {
         box2d.world.raycast(this, p1, p2);//copy(p1), copy(p2));
     }

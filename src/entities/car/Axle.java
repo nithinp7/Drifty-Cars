@@ -1,7 +1,7 @@
 
 package entities.car;
 
-import entities.surface.Floor;
+import java.util.HashMap;
 import static main.Main.*;
 import static main.Game.*;
 import static util.Constants.*;
@@ -69,9 +69,12 @@ public final class Axle implements Drawable {
         bd.position.set(chasis.getWorldPoint(chasisConnectionLocal));
         bd.angle = theta;
         
+        HashMap<String, Integer> userData = new HashMap<>();
+        userData.put("TYPE", TYPE_CAR);
+        
         axle = box2d.createBody(bd);
-        axle.createFixture(fd_a);
-        axle.createFixture(fd_b);
+        axle.createFixture(fd_a).setUserData(userData);
+        axle.createFixture(fd_b).setUserData(userData);
         
         RevoluteJointDef rjd = new RevoluteJointDef();
         rjd.bodyA = chasis;
@@ -205,7 +208,7 @@ public final class Axle implements Drawable {
                  pixPosL = box2d.coordWorldToPixels(posL);
             
             if(!(slideSpeed < 7.02f || prevPosR.sub(pixPosR).length() > 8 || prevPosL.sub(pixPosL).length() > 8) || (brake && chasis.getLinearVelocity().length() > 55)) {
-                float camTransX = floor.getTransX(), camTransY = floor.getTransY();
+                float camTransX = floor.getTransX() + WIDTH/2 - floor.w/2, camTransY = floor.getTransY() + HEIGHT/2 - floor.h/2;
                 g.line(prevPosR.x-camTransX, prevPosR.y-camTransY, pixPosR.x-camTransX, pixPosR.y-camTransY);
                 g.line(prevPosL.x-camTransX, prevPosL.y-camTransY, pixPosL.x-camTransX, pixPosL.y-camTransY);
             }

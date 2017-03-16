@@ -17,9 +17,9 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.common.Vec3;
 import org.jbox2d.dynamics.Body;
 import processing.core.PGraphics;
-import processing.core.PImage;
 import shiffman.box2d.*;
 import util.Skybox;
+import util.audio.CollisionSounds;
 import static util.input.Input.consumeInput;
 
 /**
@@ -49,6 +49,8 @@ public final class Game {
     
     private static final Vec3 audioListener = new Vec3(0, 0, 0);
     
+    public static final CollisionSounds collisionSounds = new CollisionSounds();
+    
     private static boolean tiltCamera = false;
     private static int cameraZ = 0;
     
@@ -58,7 +60,7 @@ public final class Game {
         g = c.g;
         initAll();
         c.perspective(PI/3.0f, 1.f*WIDTH/HEIGHT, 3, 2000);
-        skybox = getSkybox(SUNNY_SKYBOX);
+        skybox = getSkybox(FLATLAND_SKYBOX);
         
         floorLayer = floor.getFloorLayer();
     }
@@ -81,21 +83,28 @@ public final class Game {
     }
         
     protected static void render() {
-        
+        c.background(255, 0, 0);
         cameraZ = constrain(cameraZ, -300, 800);
+        
+//        skybox.render(g);
+        
+        //if(true) return;
+        c.pushMatrix();
         
         c.translate(WIDTH/2, HEIGHT/2, cameraZ);
         
-        if(tiltCamera) c.rotateX(PI/2.8f);
+        if(tiltCamera) c.rotateX(PI/2.3f);
         else c.rotateX(PI/6f);
         
         c.rotateZ(cameraAngle);
+        skybox.render(g);
+        
         c.translate(-WIDTH/2, -HEIGHT/2, -cameraZ);
         
-        skybox.render(g);
         
         //if(true) return;
         c.translate(-cameraTranslation.x, -cameraTranslation.y, cameraZ);
+        
         
         //c.background(120, 160, 180);
         c.ambientLight(100, 100, 100);
@@ -108,15 +117,17 @@ public final class Game {
 
         blocks.forEach(b -> b.render(g));
         c.fill(0);
-        //path.render();
-
+        path.render();
         c.stroke(0);
 
         floor.render();//-WIDTH/2, -HEIGHT/2, 2*WIDTH, 2*HEIGHT);
         
         floorLayer.endDraw();
-        
-        System.out.println(c.frameRate);
+        c.popMatrix();
+        c.fill(0);
+        c.stroke(0);
+        c.text(""+c.frameRate, 50, 50, 150, 150);
+        //System.out.println(c.frameRate);
     }
     
     private static void updatePathDebug() {
@@ -193,11 +204,19 @@ public final class Game {
         return getDistanceToAudioListener(new Vec3(cx, cy, cz));
     }
     
+    public static float getCamAngle() {
+        return cameraAngle;
+    }
+    
     public static float getCamTransX() {
         return cameraTranslation.x;
     }
     
     public static float getCamTransY() {
         return cameraTranslation.y;
+    }
+    
+    public static float getCamTransZ() {
+        return cameraZ;
     }
 }

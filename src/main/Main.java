@@ -34,6 +34,7 @@ public final class Main extends PApplet {
         WIDTH = width;
         HEIGHT = height;
         init();
+        System.out.println(WIDTH + ", " + HEIGHT);
     }
     
     @Override

@@ -1,6 +1,7 @@
 
 package util;
 
+import static main.Game.getCamAngle;
 import static main.Main.c;
 import processing.core.PGraphics;
 import processing.core.PImage;
@@ -35,8 +36,15 @@ public final class Skybox implements Drawable {
         g.hint(DISABLE_DEPTH_MASK);
         g.pushMatrix();
             //g.translate(0, 0, WIDTH/2);
-            g.translate(WIDTH/2, HEIGHT/2, WIDTH/2);
+            //g.translate(WIDTH/2, HEIGHT/2, WIDTH/2);
             g.rotateX(-PI/2);
+            //g.rotateZ(-getCamAngle());
+            
+//            g.rotateZ(PI/2);
+//            g.rotateX(PI/2);
+            
+            //g.rotateY(c.millis()/1710.f);
+            //g.rotateZ(c.millis()/1310.f);
 
             for(int i=0; i<4; i++) {
                 g.pushMatrix();
