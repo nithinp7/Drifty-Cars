@@ -60,7 +60,7 @@ public final class Game {
         g = c.g;
         initAll();
         c.perspective(PI/3.0f, 1.f*WIDTH/HEIGHT, 3, 2000);
-        skybox = getSkybox(FLATLAND_SKYBOX);
+        skybox = getSkybox(CLOUDY_SKYBOX);
         
         floorLayer = floor.getFloorLayer();
     }
