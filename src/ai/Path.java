@@ -58,16 +58,18 @@ public final class Path {
         private final PathNode n1, n2;
         private final Vec2 normal, perp;
         
-        private boolean isTemp = false;
+        private final boolean directional;
         
-        private PathSegment(PathNode n1, PathNode n2) {
+        private PathSegment(PathNode n1, PathNode n2, boolean directional) {
             this.n1 = n1;
             this.n2 = n2;
             
             normal = new Vec2(n2.x-n1.x, n2.y-n1.y);
-            normal.mulLocal(1/normal.length());
+            normal.normalize();
             
             perp = new Vec2(-normal.y, normal.x);
+            
+            this.directional = directional;
         }
         
         public float getPerpendicularDeviation(Vec2 loc, Vec2 dir) {
@@ -95,7 +97,7 @@ public final class Path {
         
         public float getAngularDeviation(Vec2 dir) {
             float angDev = atan2(dir.y*normal.x - dir.x*normal.y, dir.x*normal.x + dir.y*normal.y);
-            return isTemp ? angDev : angDev > PI/2 ? angDev-PI : angDev < -PI/2 ? angDev+PI : angDev;
+            return true ? angDev : angDev > PI/2 ? angDev-PI : angDev < -PI/2 ? angDev+PI : angDev;
         }
         
         public float getAngularDeviation(float angle) {
@@ -105,13 +107,14 @@ public final class Path {
         private void render() {
             Vec2 pixPosN1 = box2d.coordWorldToPixels(n1.x, n1.y);
             Vec2 pixPosN2 = box2d.coordWorldToPixels(n2.x, n2.y);
-            c.stroke(240, 180, 20);
+            if(directional) c.stroke(100, 240, 80);
+            else c.stroke(240, 180, 20);
             c.strokeWeight(box2d.scalarWorldToPixels(2f));
             c.line(pixPosN1.x, pixPosN1.y, pixPosN2.x, pixPosN2.y);
         }
     }
     
-    public void addNode(float x, float y, boolean startNewChain) {
+    public void addNode(float x, float y, boolean directional, boolean startNewChain) {
         
         PathNode n = new PathNode(x, y);
         
@@ -121,14 +124,17 @@ public final class Path {
         }
         
         PathNode reselect = checkReselect(x, y), prev = nodes.get(nodes.size()-1);
+        
+        if(reselect != null && reselect == prev) return;
+        
         if(startNewChain) {
-            nodes.add(reselect == null ? n : reselect);
+            nodes.add(reselect==null? n : reselect);
             return;
         }
         
         if(reselect != null) {
             nodes.add(reselect);
-            PathSegment seg = new PathSegment(prev, reselect);
+            PathSegment seg = new PathSegment(prev, reselect, directional);
             segments.add(seg);
             prev.addSegmentConnection(seg);
             reselect.addSegmentConnection(seg);
@@ -136,7 +142,7 @@ public final class Path {
         }
         
         nodes.add(n);
-        PathSegment seg = new PathSegment(prev, n);
+        PathSegment seg = new PathSegment(prev, n, directional);
         segments.add(seg);
         prev.addSegmentConnection(seg);
         n.addSegmentConnection(seg);
@@ -160,8 +166,7 @@ public final class Path {
         Vec2 shortestConnection = closestSeg.getShortestVector(pos);
         PathNode n1 = new PathNode(pos),
                  n2 = new PathNode(pos.sub(shortestConnection));
-        PathSegment temp = new PathSegment(n1, n2);
-        temp.isTemp = true;
+        PathSegment temp = new PathSegment(n1, n2, true);
         tempSegments.add(temp);
         return temp;
     }
@@ -207,6 +212,6 @@ public final class Path {
         JSONArray nodes_raw = js.getJSONArray("nodes");
         for(int i=0; i<nodes_raw.size(); i+=2) nodes.add(new PathNode(nodes_raw.getFloat(i), nodes_raw.getFloat(i+1)));
         JSONArray segments_raw = js.getJSONArray("segments");
-        for(int i=0; i<segments_raw.size(); i+=2) segments.add(new PathSegment(nodes.get(segments_raw.getInt(i)), nodes.get(segments_raw.getInt(i+1))));
+        for(int i=0; i<segments_raw.size(); i+=2) segments.add(new PathSegment(nodes.get(segments_raw.getInt(i)), nodes.get(segments_raw.getInt(i+1)), false));
     }
 }

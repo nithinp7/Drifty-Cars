@@ -57,17 +57,15 @@ public class CollisionSounds implements ContactListener {
         float dist = getDistanceToAudioListener(pos.x, pos.y, 0),
               vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 1f);
         
-        if(dist > 300) return;
+        if(dist > 400) return;
         
-        float avgImpulse = 0;
+        float largestImpulse = 0;
         
-        for(float imp : ci.normalImpulses) avgImpulse += imp;
+        for(float imp : ci.normalImpulses) if(imp > largestImpulse) largestImpulse = imp;
         
-        avgImpulse /= ci.normalImpulses.length;
+        float impNorm = 2*pow(norm(constrain(largestImpulse, 0, 4500), 300, 4500), 4);
         
-        float avgImpNorm = norm(constrain(avgImpulse, 0, 4500), 0, 4500);
-        
-        vol *= avgImpNorm;
+        vol *= impNorm;
         
         SampleControls sound,
                        soundA = usrDataA.containsKey("CRASH_SOUND")? (SampleControls) usrDataA.get("CRASH_SOUND") : null,
@@ -79,7 +77,7 @@ public class CollisionSounds implements ContactListener {
 //        sound = (soundA_playing == null || soundA_playing == true)? (soundB_playing == null || soundB_playing == true)? null : soundB : soundA;
 //        if(sound == null) return;
 
-        sound = soundA != null? soundA : soundB!= null? soundB : null;
+        sound = soundA != null? soundA : soundB;
         
         if(sound == null) return;
         

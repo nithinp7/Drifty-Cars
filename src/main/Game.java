@@ -20,7 +20,7 @@ import processing.core.PGraphics;
 import shiffman.box2d.*;
 import util.Skybox;
 import util.audio.CollisionSounds;
-import static util.input.Input.consumeInput;
+import static util.input.Input.*;
 
 /**
  *
@@ -109,7 +109,6 @@ public final class Game {
         //c.background(120, 160, 180);
         c.ambientLight(100, 100, 100);
         c.directionalLight(220, 220, 220, -1, 1, -1);
-        //c.directionalLight(255, 255, 255, -1, 1, -1);
 
         cars.forEach(car -> car.render(g));
 
@@ -120,7 +119,7 @@ public final class Game {
         path.render();
         c.stroke(0);
 
-        floor.render();//-WIDTH/2, -HEIGHT/2, 2*WIDTH, 2*HEIGHT);
+        floor.render();
         
         floorLayer.endDraw();
         c.popMatrix();
@@ -131,9 +130,13 @@ public final class Game {
     }
     
     private static void updatePathDebug() {
-        if(consumeInput(VK_N)) {
+        if(isKeyPressed(VK_CONTROL)) {
+            boolean directed = consumeMousePress(LEFT),
+                    undirected = directed? false : consumeMousePress(RIGHT);
+            
             Vec2 pos = coordPixelsToWorld(c.mouseX, c.mouseY);
-            path.addNode(pos.x, pos.y, consumeInput(VK_SPACE));
+            if(directed || undirected) path.addNode(pos.x, pos.y, directed, consumeInput(VK_SPACE));
+            //path.addNode(pos.x, pos.y, false, false);
         }
         if(consumeInput(VK_C)) {
             path.clear();
