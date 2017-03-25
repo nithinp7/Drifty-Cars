@@ -15,6 +15,7 @@ import util.input.Input;
 public final class Main extends PApplet {
     
     public static PApplet c /*for context*/;
+    public static boolean initialized = false;
     
     public static void main(String[] args) {
         PApplet.main("main.Main");
@@ -22,9 +23,8 @@ public final class Main extends PApplet {
     
     @Override
     public void settings() {
-        fullScreen(P3D);
-        //size(WIDTH, HEIGHT, P3D);
-        
+        //fullScreen(P3D);
+        size(WIDTH, HEIGHT, P3D);
     }
     
     @Override
@@ -33,12 +33,15 @@ public final class Main extends PApplet {
         c = this;
         WIDTH = width;
         HEIGHT = height;
-        init();
+        
+        new Thread(() -> init()).start();
+        
         System.out.println(WIDTH + ", " + HEIGHT);
     }
     
     @Override
     public void draw() {
+        if(!initialized) return;
         tick();
         render();
     }

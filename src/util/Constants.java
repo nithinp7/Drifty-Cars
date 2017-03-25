@@ -76,9 +76,9 @@ public final class Constants {
             CAR_CRASH = 2;
     
     private static final String[] SOUND_URLS = {
-        "/carEngine.wav",
-        "/carSkid.wav",
-        "/carCrash.wav"
+        "./res/sounds/carEngine.wav",
+        "./res/sounds/carSkid.wav",
+        "./res/sounds/carCrash.wav"
     };
     
     private static final ArrayList<PImage> textures = new ArrayList<>();
@@ -122,7 +122,7 @@ public final class Constants {
     public static void initShaders() {
         if(shaders.isEmpty()) for(String shader : SHADER_URLS) {
             String[] urls = shader.split(" ");
-            shaders.add(c.loadShader(urls[0], urls[1]));
+            //shaders.add(c.loadShader(urls[0], urls[1]));
         }
     }
     
@@ -131,7 +131,8 @@ public final class Constants {
     }
     
     public static void initSamples() {
-        if(samples.isEmpty()) for(String url : SOUND_URLS) samples.add(SampleManager.sample(c.dataPath("")+url));
+//        if(samples.isEmpty()) for(String url : SOUND_URLS) samples.add(SampleManager.sample(c.dataPath("")+url));
+        if(samples.isEmpty()) for(String url : SOUND_URLS) samples.add(SampleManager.sample(url));
     }
     
     public static SampleControls createSound(int id, boolean loop) {
