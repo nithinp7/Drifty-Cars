@@ -23,8 +23,8 @@ public final class Main extends PApplet {
     
     @Override
     public void settings() {
-        //fullScreen(P3D);
-        size(WIDTH, HEIGHT, P3D);
+        fullScreen(P3D);
+        //size(WIDTH, HEIGHT, P3D);
     }
     
     @Override

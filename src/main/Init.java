@@ -13,8 +13,8 @@ import beads.AudioContext;
 import beads.Gain;
 import entities.car.Car;
 import entities.surface.Floor;
+import procGen.MapGen;
 import static util.Constants.*;
-import util.audio.CollisionSounds;
 
 /**
  *
@@ -56,7 +56,8 @@ public final class Init {
     }
     
     private static void initMap() {
-        floor = new Floor(new Vec2(-150, -150), new Vec2(300, 300), new Vec2(20, 20));
+        floor = new Floor(1200, 1200);
+        map = new MapGen(1600, 1600, 10);
     }
     
     private static void initVehicles() {
@@ -66,7 +67,6 @@ public final class Init {
     }
     
     private static void initBuildings() {
-        
         blocks.add(new Block(0, 280, 0, 660, 20, 25, true));
         blocks.add(new Block(0, -280, 0, 660, 20, 25, true));
         blocks.add(new Block(-340, 0, 0, 20, 620, 25, true));

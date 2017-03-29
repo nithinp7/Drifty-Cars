@@ -15,13 +15,14 @@ import static util.Constants.CAR_CRASH;
 import static util.Constants.TYPE_BUILDING;
 import static util.Constants.createSound;
 import util.audio.SampleControls;
+import util.interfaces.Disposable;
 import util.interfaces.Drawable;
 
 /**
  *
  * @author Nithin
  */
-public final class Block implements Drawable {
+public final class Block implements Drawable, Disposable {
     
     private final Body body;
     
@@ -97,8 +98,14 @@ public final class Block implements Drawable {
             g.translate(pos.x, pos.y, h_pixels/2);
             g.rotate(-body.getAngle());
             g.fill(110, 130, 140);
+            g.fill(150, 0, 0);
             g.box(l_pixels, w_pixels, h_pixels);
         g.popMatrix();
         g.popStyle();
+    }
+    
+    @Override
+    public void dispose() {
+        box2d.world.destroyBody(body);
     }
 }

@@ -25,7 +25,7 @@ public final class Floor {
     
     private final Vec2 floorTrans;// = new Vec2(0, 0);
     
-    public Floor(Vec2 loc, Vec2 size, Vec2 tileSize) {
+    public Floor(int width, int height) {
         
         floorTrans = new Vec2(0, 0);
         
@@ -37,16 +37,18 @@ public final class Floor {
         
         floor = box2d.createBody(bd);
         
-        w = 1200;
-        h = 1200;
+        w = width;
+        h = height;
         
         floorLayer = c.createGraphics(w, h);
         floorLayer.beginDraw();
         
+        floorLayer.rectMode(CENTER);
+        
         floorLayer.fill(200, 220, 240, 255);
         floorLayer.noStroke();
         
-        floorLayer.rect(0, 0, w, h);
+        floorLayer.rect(w/2, h/2, w, h);
         floorLayer.endDraw();
     }
     
@@ -57,7 +59,7 @@ public final class Floor {
         if(abs(dif.x) < w/4 && abs(dif.y) < h/4) return;
         
         PImage temp = floorLayer.get((int)dif.x, (int)dif.y, w, h);
-        floorLayer.rect(0, 0, w, h);
+        floorLayer.rect(w/2, h/2, w, h);
         floorLayer.image(temp, 0, 0, w, h);
         
         floorTrans.set(cx, cy);

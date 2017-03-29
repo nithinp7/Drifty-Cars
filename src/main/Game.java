@@ -16,6 +16,7 @@ import static main.Init.*;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.common.Vec3;
 import org.jbox2d.dynamics.Body;
+import procGen.MapGen;
 import processing.core.PGraphics;
 import shiffman.box2d.*;
 import util.Skybox;
@@ -32,6 +33,8 @@ public final class Game {
     public static Path path;
     
     public static Floor floor;
+    public static MapGen map;
+    
     public static Skybox skybox;
     
     public static AudioContext ac;
@@ -77,6 +80,7 @@ public final class Game {
         updatePathDebug();
         updateAI_Debug();
         updateCamera();
+        map.update();
         cars.forEach(car -> car.update());
         box2d.step(TIMESTEP, 8, 3);
         
@@ -110,6 +114,8 @@ public final class Game {
         //c.background(120, 160, 180);
         c.ambientLight(100, 100, 100);
         c.directionalLight(220, 220, 220, -1, 1, -1);
+        
+        map.render();
 
         cars.forEach(car -> car.render(g));
 
@@ -126,7 +132,10 @@ public final class Game {
         c.popMatrix();
         c.fill(0);
         c.stroke(0);
+        
+        c.hint(DISABLE_DEPTH_TEST);
         c.text(""+c.frameRate, 50, 50, 150, 150);
+        c.hint(ENABLE_DEPTH_TEST);
         //System.out.println(c.frameRate);
     }
     

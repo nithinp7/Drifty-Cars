@@ -197,8 +197,6 @@ public final class Axle implements Drawable {
         
         g.pushStyle();
             g.strokeWeight(1.5f);
-            //g.stroke(110, 90, 140, 35);
-            //g.stroke(110, 90, 140, 235);
             g.stroke(45, 38, 45, 60);
             float angle = axle.getAngle(), sin = sin(angle), cos = cos(angle);
             Vec2 pos = axle.getPosition(), 
@@ -208,9 +206,9 @@ public final class Axle implements Drawable {
                  pixPosL = box2d.coordWorldToPixels(posL);
             
             if(!(slideSpeed < 7.02f || prevPosR.sub(pixPosR).length() > 8 || prevPosL.sub(pixPosL).length() > 8) || (brake && chasis.getLinearVelocity().length() > 55)) {
-                float camTransX = floor.getTransX() + WIDTH/2 - floor.w/2, camTransY = floor.getTransY() + HEIGHT/2 - floor.h/2;
-                g.line(prevPosR.x-camTransX, prevPosR.y-camTransY, pixPosR.x-camTransX, pixPosR.y-camTransY);
-                g.line(prevPosL.x-camTransX, prevPosL.y-camTransY, pixPosL.x-camTransX, pixPosL.y-camTransY);
+                float floorTransX = floor.getTransX() + WIDTH/2 - floor.w/2, floorTransY = floor.getTransY() + HEIGHT/2 - floor.h/2;
+                g.line(prevPosR.x-floorTransX, prevPosR.y-floorTransY, pixPosR.x-floorTransX, pixPosR.y-floorTransY);
+                g.line(prevPosL.x-floorTransX, prevPosL.y-floorTransY, pixPosL.x-floorTransX, pixPosL.y-floorTransY);
             }
             
             prevPosR.set(pixPosR);
