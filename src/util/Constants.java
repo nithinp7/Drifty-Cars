@@ -52,12 +52,14 @@ public final class Constants {
     public static final int
             CLOUDY_SKYBOX = 0,
             SUNNY_SKYBOX = 1,
-            FLATLAND_SKYBOX = 2;
+            FLATLAND_SKYBOX = 2,
+            GHOST_TOWN_SKYBOX = 3;
     
     private static final String[] SKYBOX_FOLDERS = {
         "./res/skyboxes/cloudy png",
         "./res/skyboxes/sunny png",
-        "./res/skyboxes/flatland png"
+        "./res/skyboxes/flatland png",
+        "./res/skyboxes/ghost_town png"
     };
     
     public static final int

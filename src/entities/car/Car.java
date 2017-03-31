@@ -96,6 +96,7 @@ public abstract class Car implements Drawable {
     
     private void drive() {
         throttle = constrain(throttle, 0, 1);
+        if(reverse) throttle = 0.2f;
         float speed = getForwardSpeed();//chasis.getLinearVelocity().length();
         Vec2 pos = chasis.getPosition();
         

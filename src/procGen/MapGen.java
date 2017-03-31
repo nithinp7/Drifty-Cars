@@ -1,19 +1,20 @@
 
 package procGen;
 
+import ai.Path.PathNode;
 import entities.building.Block;
 import java.util.ArrayList;
 import java.util.Random;
 import static main.Game.*;
 import static main.Main.c;
+import org.jbox2d.common.Vec2;
 import static processing.core.PApplet.abs;
-import static processing.core.PConstants.CENTER;
-import static processing.core.PConstants.CORNERS;
+import static processing.core.PConstants.*;
 import static util.Constants.*;
 
 /**
  *
- * @author admin
+ * @author Nithin
  */
 public final class MapGen {
     
@@ -25,7 +26,8 @@ public final class MapGen {
     private final float width, height,
                         cellsSideLength,
                         cellWidth, cellHeight,
-                        cellWidth_m, cellHeight_m;
+                        cellWidth_world, cellHeight_world;
+    
     private final int subDivs,
                       cellsSideLength_int;
     
@@ -35,6 +37,9 @@ public final class MapGen {
     
     private int[][] map;
     private Block[][] buildings;
+    public PathNode[][] nodes;
+    
+    private final ArrayList<RoadSegment> roads = new ArrayList<>();
     
     public MapGen(float width, float height, int subDivs) {
         this.width = width;
@@ -47,11 +52,12 @@ public final class MapGen {
         cellWidth = width/cellsSideLength;
         cellHeight = height/cellsSideLength;
         
-        cellWidth_m = box2d.scalarPixelsToWorld(cellWidth);
-        cellHeight_m = box2d.scalarPixelsToWorld(cellHeight);
+        cellWidth_world = box2d.scalarPixelsToWorld(cellWidth);
+        cellHeight_world = box2d.scalarPixelsToWorld(cellHeight);
         
         map = new int[cellsSideLength_int][cellsSideLength_int];
         buildings = new Block[cellsSideLength_int][cellsSideLength_int];
+        nodes = new PathNode[cellsSideLength_int][cellsSideLength_int];
         
         r = new Random();
         
@@ -72,48 +78,73 @@ public final class MapGen {
                 if(!rectPresent) break;
                 if(dir) {
                     ti++;
-                    if(ti>=subDivs) break;
+                    if(ti>=endI) break;
                     map[ti*2][tj*2+1] = TYPE_BUILDING;
                 } else {
                     tj++;
-                    if(tj>=subDivs) break;
+                    if(tj>=endI) break;
                     map[ti*2+1][tj*2] = TYPE_BUILDING;
                 }
             }
         }
         
-        for(int i=0; i<cellsSideLength_int; i++) for(int j=startJ; j<cellsSideLength_int; j++) {
+        for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
             int type = map[i][j];
             float x = tx - width/2 + WIDTH/2 + i*cellWidth,
                   y = ty - height/2 + HEIGHT/2 + j*cellHeight;
+            
+            Vec2 pos = box2d.coordPixelsToWorld(x, y);
+            
             if(type==TYPE_BUILDING && buildings[i][j]==null) {
-                Block b = new Block(box2d.coordPixelsToWorld(x, y), 0, cellWidth_m, cellHeight_m, 40, true);
+                Block b = new Block(pos.x, pos.y, 0, cellWidth_world, cellHeight_world, 40, true);
                 buildings[i][j] = b;
+            } else if(type==TYPE_ROAD) {
+                int i_copy = i, j_copy = j;
+                
+                //pos.set(pos.x-2*cellWidth_world, pos.y-2*cellHeight_world);
+                
+                PathNode p;
+                if(nodes[i][j]==null){
+                    p = path.createRawNode(pos.x, pos.y);
+                    nodes[i][j] = p;
+                } else p = nodes[i][j];
+                       
+                if(i+1<cellsSideLength_int && map[i+1][j]==TYPE_ROAD) {
+                    if(roads.stream().noneMatch(road -> road.isSame(i_copy, j_copy, i_copy+1, j_copy))) {
+                        PathNode p1;
+                        if(nodes[i+1][j]==null){
+                            p1 = path.createRawNode(pos.x+cellWidth_world, pos.y);
+                            nodes[i+1][j] = p1;
+                        } else p1 = nodes[i+1][j];
+                        roads.add(new RoadSegment(i, j, i+1, j, p, p1, cellWidth, cellHeight));
+                    }
+                }
+                if(j+1<cellsSideLength_int && map[i][j+1]==TYPE_ROAD) {
+                    if(roads.stream().noneMatch(road -> road.isSame(i_copy, j_copy, i_copy, j_copy+1))) {
+                        PathNode p1;
+                        if(nodes[i][j+1]==null){
+                            p1 = path.createRawNode(pos.x, pos.y-cellHeight_world);
+                            nodes[i][j+1] = p1;
+                        } else p1 = nodes[i][j+1];
+                        roads.add(new RoadSegment(i, j, i, j+1, p, p1, cellWidth, cellHeight));
+                    }
+                }
             }
         }
     }
     
     private void layAdjacentRoads(int i, int j) {
-        int val0 = map[2*i+1][2*j],
-            val1 = map[2*i][2*j],
-            val2 = map[2*i][2*j+1];
-
-        if(val0 != TYPE_BUILDING) map[2*i+1][2*j] = TYPE_ROAD;
-        if(val1 != TYPE_BUILDING) map[2*i][2*j] = TYPE_ROAD;
-        if(val2 != TYPE_BUILDING) map[2*i][2*j+1] = TYPE_ROAD;
-
-        boolean iSpace = i < subDivs, jSpace = j < subDivs;
-        if(jSpace) {
-            if(map[2*i][2*j+2] != TYPE_BUILDING) map[2*i][2*j+2] = TYPE_ROAD;
-            if(map[2*i+1][2*j+2] != TYPE_BUILDING) map[2*i+1][2*j+2] = TYPE_ROAD;
-            if(iSpace && map[2*i+2][2*j+2] != TYPE_BUILDING) map[2*i+2][2*j+2] = TYPE_ROAD;
-        }
-
-        if(iSpace) {
-            if(map[2*i+2][2*j] != TYPE_BUILDING) map[2*i+2][2*j] = TYPE_ROAD;
-            if(map[2*i+2][2*j+1] != TYPE_BUILDING) map[2*i+2][2*j+1] = TYPE_ROAD;
-            if(jSpace && map[2*i+2][2*j+2] != TYPE_BUILDING) map[2*i+2][2*j+2] = TYPE_ROAD;
-        }
+        
+        if(map[2*i+2][2*j] != TYPE_BUILDING) map[2*i+2][2*j] = TYPE_ROAD;
+        if(map[2*i+2][2*j+1] != TYPE_BUILDING) map[2*i+2][2*j+1] = TYPE_ROAD;
+        if(map[2*i+2][2*j+2] != TYPE_BUILDING) map[2*i+2][2*j+2] = TYPE_ROAD;
+        
+        if(map[2*i][2*j] != TYPE_BUILDING) map[2*i][2*j] = TYPE_ROAD;
+        if(map[2*i][2*j+1] != TYPE_BUILDING) map[2*i][2*j+1] = TYPE_ROAD;
+        if(map[2*i][2*j+2] != TYPE_BUILDING) map[2*i][2*j+2] = TYPE_ROAD;
+        
+        if(map[2*i+1][2*j] != TYPE_BUILDING) map[2*i+1][2*j] = TYPE_ROAD;
+        if(map[2*i+1][2*j+2] != TYPE_BUILDING) map[2*i+1][2*j+2] = TYPE_ROAD;
     }
     
     private void emptyMap(int startI, int startJ, int endI, int endJ) {
@@ -122,32 +153,57 @@ public final class MapGen {
             Block b = buildings[i][j];
             if(b!=null) b.dispose();
             buildings[i][j] = null;
+            PathNode p = nodes[i][j];
+            if(p != null) {
+                path.removeNode(p);
+                nodes[i][j] = null;
+            }
         }
+        //DEAD FLAG NOT SET
+        roads.removeIf(road -> road.withinBounds(startI, startJ, endI, endJ));
     }
     
     private void translateMap(int ti, int tj) {
         int[][] temp = new int[cellsSideLength_int][cellsSideLength_int];
         Block[][] tempBuildings = new Block[cellsSideLength_int][cellsSideLength_int];
+        PathNode[][] tempNodes = new PathNode[cellsSideLength_int][cellsSideLength_int];
         for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
             int copy_i = i-2*ti, copy_j = j-2*tj;
             if(copy_i<cellsSideLength_int && copy_i>=0 && copy_j<cellsSideLength_int && copy_j>=0) {
                 temp[i][j] = map[copy_i][copy_j];
                 tempBuildings[i][j] = buildings[copy_i][copy_j];
+                tempNodes[i][j] = nodes[copy_i][copy_j];
             } else {
                 temp[i][j] = TYPE_EMPTY;
                 Block b = buildings[cellsSideLength_int-1-i][cellsSideLength_int-1-j];
                 if(b != null) b.dispose();
                 tempBuildings[i][j] = null;
+                PathNode p = nodes[cellsSideLength_int-1-i][cellsSideLength_int-1-j];
+                if(p != null) {
+                    path.removeNode(p);
+                }
+                tempNodes[i][j] = null;
             }
         }
+        translateRoads(ti*2, tj*2);
         map = temp;
         buildings = tempBuildings;
+        nodes = tempNodes;
 
         if(ti > 0) recalculateMap(0, 0, ti+1, subDivs);
         else recalculateMap(subDivs+ti, 0, subDivs, subDivs);
 
         if(tj > 0) recalculateMap(0, 0, subDivs, tj+1);
         else recalculateMap(0, subDivs+tj, subDivs, subDivs);
+    }
+    
+    private void translateRoads(int ti, int tj) {
+            roads
+                .removeIf(road -> {
+                   //DEAD FLAG IS NOT SET
+                   road.translate(ti, tj);
+                   return !road.withinBounds(0, 0, cellsSideLength_int, cellsSideLength_int);
+                });
     }
     
     private void drawGround() {
@@ -158,47 +214,19 @@ public final class MapGen {
         for(Block[] col : buildings) for(Block b : col) if(b != null) b.render(c.g);
     }
     
-    private void drawBuildings2() {
-        int mode = c.g.rectMode;
-        c.rectMode(CENTER);
-        c.stroke(50);
-        c.strokeWeight(1);
-        c.fill(150, 0, 0);
-        c.pushMatrix();
-        c.translate(tx-width/2+WIDTH/2, ty-height/2+HEIGHT/2);
-        for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
-          int val = map[i][j];
-          if(val == TYPE_BUILDING) {
-            c.pushMatrix();
-            c.translate(i*cellWidth, j*cellHeight, 20);
-            c.box(cellWidth, cellHeight, 40);
-            c.popMatrix();
-          }
-        }
-        c.popMatrix();
-        c.rectMode(mode);
-    }
-    
     private void drawRoads() {
         int mode = c.g.rectMode;
         c.rectMode(CORNERS);
+        //c.rectMode(CENTER);
         c.pushStyle();
         c.pushMatrix();
-        c.translate(tx-width/2+WIDTH/2 - 0.5f*cellWidth, ty-height/2+HEIGHT/2 - 0.5f*cellHeight, 0.5f);
-        //c.strokeWeight(30);
+        c.translate(tx-width/2+WIDTH/2, ty-height/2+HEIGHT/2, 0.5f);
         c.noStroke();
         c.fill(30);
-        for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
-            if(map[i][j] != TYPE_ROAD) continue;
-            boolean right = i<subDivs*2 && map[i+1][j]==TYPE_ROAD,
-                    left = i>0 && map[i-1][j]==TYPE_ROAD, 
-                    down = j<subDivs*2 && map[i][j+1]==TYPE_ROAD, 
-                    up = j>0 && map[i][j-1]==TYPE_ROAD;
-            if(right) c.rect((i+0.5f)*cellWidth, (j+0.2f)*cellHeight, (i+1.0f)*cellWidth, (j+0.8f)*cellHeight);
-            if(left) c.rect((i+0.5f)*cellWidth, (j+0.2f)*cellHeight, i*cellWidth, (j+0.8f)*cellHeight);
-            if(down) c.rect((i+0.2f)*cellWidth, (j+0.5f)*cellHeight, (i+0.8f)*cellWidth, (j+1.0f)*cellHeight);
-            if(up) c.rect((i+0.2f)*cellWidth, (j+0.5f)*cellHeight, (i+0.8f)*cellWidth, j*cellHeight);
-        }
+        
+        roads.forEach(road -> road.render(c.g));
+        //for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) if(map[i][j] == TYPE_ROAD) c.rect(i*cellWidth, j*cellWidth, cellWidth, cellHeight);
+        
         c.popMatrix();
         c.popStyle();
         c.rectMode(mode);

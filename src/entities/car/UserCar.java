@@ -19,7 +19,7 @@ public final class UserCar extends Car {
     public Vec2 dir = new Vec2(0, 0);
     
     public UserCar(float x, float y, float theta, float l, float w, float h) {
-        super(x, y, theta, l, w, h);
+        super(x, y, 0, l, w, h);
     }
     
     public UserCar(Vec2 pos, float theta, float l, float w, float h) {
@@ -42,7 +42,7 @@ public final class UserCar extends Car {
         if(inputs[0]) throttle += 0.1f;
         if(inputs[1]) throttle -= 0.1f;
         
-        reverse = isKeyPressed(VK_R);
+        reverse = isKeyPressed(VK_R) || isMousePressed(RIGHT);
         
         throttle -= 0.05f*consumeMouseWheel();
         

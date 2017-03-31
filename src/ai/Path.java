@@ -21,7 +21,7 @@ public final class Path {
     private final ArrayList<PathNode> nodes = new ArrayList<>();
     private final ArrayList<PathSegment> segments = new ArrayList<>(), tempSegments = new ArrayList<>();
     
-    private final class PathNode {
+    public final class PathNode {
         
         private final float x, y;
         
@@ -60,9 +60,13 @@ public final class Path {
         
         private final boolean directional;
         
+        @SuppressWarnings("LeakingThisInConstructor")
         private PathSegment(PathNode n1, PathNode n2, boolean directional) {
             this.n1 = n1;
             this.n2 = n2;
+            
+            n1.addSegmentConnection(this);
+            n2.addSegmentConnection(this);
             
             normal = new Vec2(n2.x-n1.x, n2.y-n1.y);
             normal.normalize();
@@ -148,6 +152,12 @@ public final class Path {
         n.addSegmentConnection(seg);
     }
     
+    public PathNode createRawNode(float x, float y) {
+        PathNode n = new PathNode(x, y);
+        nodes.add(n);
+        return n;
+    }
+    
     private PathNode checkReselect(float x, float y) {
         PathNode closest = nodes.stream().min((n, n2) -> (int)(sqrt(pow(n.x-x, 2) + pow(n.y-y, 2)) - sqrt(pow(n2.x-x, 2) + pow(n2.y-y, 2)))).get();
         if(sqrt(pow(closest.x-x, 2) + pow(closest.y-y, 2)) < 8) return closest;
@@ -173,6 +183,26 @@ public final class Path {
     
     public void removeTemporarySegment(PathSegment temp) {
         tempSegments.remove(temp);
+    }
+    
+    public void removeNodes(ArrayList<PathNode> toRemove) {
+        toRemove.forEach(p -> segments.removeAll(p.connectingSegments));
+        nodes.removeAll(toRemove);
+    }
+    
+    public void removeNode(PathNode p) {
+        segments.removeAll(p.connectingSegments);
+        nodes.remove(p);
+    }
+    
+    public void removeSegments(ArrayList<PathSegment> toRemove) {
+        segments.removeAll(toRemove);
+    }
+    
+    public PathSegment createRawSegment(PathNode p, PathNode p2, boolean directional) {
+        PathSegment s = new PathSegment(p, p2, directional);
+        segments.add(s);
+        return s;
     }
     
     public void render() {

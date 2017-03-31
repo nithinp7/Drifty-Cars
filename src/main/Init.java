@@ -57,7 +57,7 @@ public final class Init {
     
     private static void initMap() {
         floor = new Floor(1200, 1200);
-        map = new MapGen(1600, 1600, 10);
+        map = new MapGen(1600, 1600, 8);
     }
     
     private static void initVehicles() {

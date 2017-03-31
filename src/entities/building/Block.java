@@ -97,8 +97,8 @@ public final class Block implements Drawable, Disposable {
             //g.noStroke();
             g.translate(pos.x, pos.y, h_pixels/2);
             g.rotate(-body.getAngle());
-            g.fill(110, 130, 140);
-            g.fill(150, 0, 0);
+            //g.fill(176, 80, 180);
+            g.fill(90, 60, 70);
             g.box(l_pixels, w_pixels, h_pixels);
         g.popMatrix();
         g.popStyle();

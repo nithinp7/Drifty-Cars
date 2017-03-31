@@ -96,7 +96,9 @@ public final class AI_Car extends Car {
             turn = constrain(targetSteerAngle - steerAngle, -1, 1);
             frontObstacleDetector.setTargetSteerAngle(targetSteerAngle);
             //throttle = !reverse && abs(recommendedDeviation) > 0 ? map(abs(recommendedDeviation), 0, 0.7f, 0.25f, 0.6f) : 0.6f;
-            throttle = !reverse ? constrain(0.4f*recommendedThrottle*recommendedThrottle+0.3f-getSlideSpeed()*0.5f, 0, 1f) : 1f;
+            //throttle = !reverse ? constrain(0.4f*recommendedThrottle*recommendedThrottle+0.3f-getSlideSpeed()*0.5f, 0, 1f) : 1f;
+            throttle = !reverse ? constrain(0.8f*recommendedThrottle*recommendedThrottle-getSlideSpeed()*0.2f-0.05f*getForwardSpeed(), 0, 1f) : 1f;
+            
             //throttle = 0.5f;
         } else {
             turn = 0;
