@@ -90,4 +90,9 @@ public final class RoadSegment implements Drawable, Disposable {
     public void dispose() {
         dead = true;
     }
+    
+    @Override
+    public boolean isDead() {
+        return dead;
+    }
 }

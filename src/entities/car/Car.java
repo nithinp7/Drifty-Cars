@@ -1,7 +1,6 @@
 
 package entities.car;
 
-import beads.SamplePlayer;
 import java.awt.Color;
 import java.util.HashMap;
 import static main.Game.*;
@@ -11,15 +10,17 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 import processing.core.PGraphics;
 import static util.Constants.*;
-import static util.Constants.createSound;
+import util.audio.AudioRequest;
 import util.audio.SampleControls;
+import util.audio.SkidParam;
+import util.interfaces.Disposable;
 import util.interfaces.Drawable;
 
 /**
  *
  * @author Nithin
  */
-public abstract class Car implements Drawable {
+public abstract class Car implements Drawable, Disposable {
     
     public float turn = 0,
                  throttle = 0,
@@ -33,7 +34,10 @@ public abstract class Car implements Drawable {
     private final float l, l_pixels, w, w_pixels, h, h_pixels;
     
     private final Color color;
-    private final SampleControls engine, skidSound, crashSound;
+    private final AudioRequest<Float> engineSound;
+    private final AudioRequest<SkidParam> skidSound;
+    
+    private boolean dead = false;
     
     public Car(float x, float y, float theta, float l, float w, float h) {
         
@@ -70,17 +74,14 @@ public abstract class Car implements Drawable {
         
         color = new Color((int)c.random(150, 250), (int)c.random(150, 250), (int)c.random(150, 250));
         
-        engine = createSound(CAR_ENGINE, true);
-        skidSound = createSound(CAR_SKID, true);
+        engineSound = new AudioRequest<>(0, 0, 0, 1, Float.MAX_VALUE);
+        carSounds.addRequest(engineSound);
         
-        skidSound.pitchGlide.setValue(1f);
-        
-        crashSound = createSound(CAR_CRASH, false);
-        crashSound.gainGlide.setValue(0);
-        crashSound.pitchGlide.setValue(1);
-        crashSound.player.setKillOnEnd(false);
-        
-        userData.put("CRASH_SOUND", crashSound);
+//        skidSound = createSound(CAR_SKID, true);
+//        skidSound.pitchGlide.setValue(1f);
+
+        skidSound = new AudioRequest<>(0, 0, 0, 1, new SkidParam(Float.MAX_VALUE, false));
+        skidSounds.addRequest(skidSound);
     }
     
     public Car(Vec2 loc, float theta, float l, float w, float h) {
@@ -97,7 +98,7 @@ public abstract class Car implements Drawable {
     private void drive() {
         throttle = constrain(throttle, 0, 1);
         if(reverse) throttle = 0.2f;
-        float speed = getForwardSpeed();//chasis.getLinearVelocity().length();
+        float speed = getForwardSpeed();
         Vec2 pos = chasis.getPosition();
         
         updateSounds(pos, speed);
@@ -110,18 +111,22 @@ public abstract class Car implements Drawable {
         float dist = getDistanceToAudioListener(pos.x, pos.y, 0);
         float vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.25f);
         float pitch = (throttle*0.2f+constrain(speed, 0, 20)*0.7f*0.05f)*3.5f + 0.1f*sin(c.millis()/450.0f)*sin(c.millis()/250.f)+0.3f;
-        engine.gainGlide.setGlideTime(50);
-        engine.gainGlide.setValue(vol*0.45f);
-        engine.pitchGlide.setGlideTime(1800);
-        //engine.pitchGlide.setValue(map(speed, 0, 10, 0.8f, 1.6f));
-        engine.pitchGlide.setValue(pitch);
         
+        engineSound.setGainTime(50);
+        engineSound.setGainValue(vol*0.45f);
+        engineSound.setPitchTime(1800);
+        engineSound.setPitchValue(pitch);
+
         float slideSpeed = getSlideSpeed();
-        float skidVolume = slideSpeed < 5.52 ? 0 : constrain(slideSpeed/14.0f, 0, 0.1f);
-        skidSound.gainGlide.setGlideTime(400);
-        skidSound.gainGlide.setValue(skidVolume*vol);
-        skidSound.pitchGlide.setGlideTime(250);
-        skidSound.pitchGlide.setValue(skidVolume*vol*0.6f+0.85f);
+        float skidVolume = slideSpeed < 5.52f ? 0 : constrain(slideSpeed/14.0f, 0, 0.1f);
+//        skidSound.gainGlide.setGlideTime(400);
+//        skidSound.gainGlide.setValue(skidVolume*vol);
+//        skidSound.pitchGlide.setGlideTime(250);
+//        skidSound.pitchGlide.setValue(skidVolume*vol*0.6f+0.85f);
+        skidSound.setGainTime(400);
+        skidSound.setGainValue(skidVolume*vol);
+        skidSound.setPitchTime(250);
+        skidSound.setPitchValue(skidVolume*vol*0.6f+0.85f);
     }
     
     private void updateSteering() {
@@ -166,5 +171,20 @@ public abstract class Car implements Drawable {
     public void updateTrackMarks() {
         frontAxle.updateTrackMarks(brake);
         rearAxle.updateTrackMarks(brake);
+    }
+    
+    @Override
+    public void dispose() {
+        frontAxle.dispose();
+        rearAxle.dispose();
+        box2d.world.destroyBody(chasis);
+        carSounds.removeRequest(engineSound);
+        skidSounds.removeRequest(skidSound);
+        dead = true;
+    }
+    
+    @Override
+    public boolean isDead() {
+        return dead;
     }
 }

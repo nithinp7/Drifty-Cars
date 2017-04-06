@@ -7,11 +7,14 @@ import beads.Sample;
 import beads.SampleManager;
 import beads.SamplePlayer;
 import java.util.ArrayList;
+import java.util.Comparator;
 import static main.Game.ac;
 import static main.Main.c;
 import processing.core.PImage;
 import processing.opengl.PShader;
+import util.audio.AudioRequest;
 import util.audio.SampleControls;
+import util.audio.SkidParam;
 
 /**
  *
@@ -21,8 +24,9 @@ public final class Constants {
     
     public static int
             WIDTH = 800, 
-            HEIGHT = 640,
-
+            HEIGHT = 640;
+            
+    public static final int
             FPS = 30,
             
             TYPE_CAR = 0,
@@ -83,6 +87,16 @@ public final class Constants {
         "./res/sounds/carCrash.wav"
     };
     
+    public static final Comparator<Float> distComparator = (a, b) -> a<b? -1 : Math.abs(a-b)<0.00001f? 0 : 1;
+    public static final Comparator<AudioRequest<Float>> distSoundComparator = (a, b) -> distComparator.compare(a.comparisonValue, b.comparisonValue);
+    //public static final Comparator<AudioRequest<Float>> distComparator = (a, b) -> (int)(a.comparisonValue-b.comparisonValue)
+    public static final Comparator<AudioRequest<SkidParam>> skidSoundComparator = (a, b) -> {
+        SkidParam spa = a.comparisonValue, spb = b.comparisonValue;
+        int distComp = distComparator.compare(a.comparisonValue.distance, b.comparisonValue.distance);
+        if(spa.skidding == spb.skidding) return distComp;
+        return spa.skidding? -1 : 1;
+    };
+    
     private static final ArrayList<PImage> textures = new ArrayList<>();
     private static final ArrayList<PShader> shaders = new ArrayList<>();
     
@@ -133,7 +147,7 @@ public final class Constants {
     }
     
     public static void initSamples() {
-//        if(samples.isEmpty()) for(String url : SOUND_URLS) samples.add(SampleManager.sample(c.dataPath("")+url));
+        ac.out.setGain(8);
         if(samples.isEmpty()) for(String url : SOUND_URLS) samples.add(SampleManager.sample(url));
     }
     
@@ -160,7 +174,7 @@ public final class Constants {
     }
     
     public static void closeSounds() {
-        samplePlayers.forEach(sp -> sp.player.kill());
+        samplePlayers.forEach(sp -> sp.kill());
         samples.forEach(s -> s.clear());
         ac.stop();
     }
