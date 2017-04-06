@@ -7,4 +7,6 @@ package util.interfaces;
  */
 public interface Disposable {
     public void dispose();
+    
+    public boolean isDead();
 }

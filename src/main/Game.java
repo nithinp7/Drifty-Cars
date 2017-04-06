@@ -20,7 +20,9 @@ import procGen.MapGen;
 import processing.core.PGraphics;
 import shiffman.box2d.*;
 import util.Skybox;
+import util.audio.CarSounds;
 import util.audio.CollisionSounds;
+import util.audio.SkidSounds;
 import static util.input.Input.*;
 
 /**
@@ -53,6 +55,8 @@ public final class Game {
     private static final Vec3 audioListener = new Vec3(0, 0, 0);
     
     public static final CollisionSounds collisionSounds = new CollisionSounds();
+    public static final CarSounds carSounds = new CarSounds();
+    public static final SkidSounds skidSounds = new SkidSounds();
     
     private static boolean tiltCamera = false;
     private static int cameraZ = 0;
@@ -74,7 +78,7 @@ public final class Game {
         floorLayer.beginDraw();
         
         Vec2 cPos = cameraTarget.getPosition();
-        audioListener.set(cPos.x, cPos.y, box2d.scalarPixelsToWorld(800 - cameraZ));
+        audioListener.set(cPos.x, cPos.y, box2d.scalarPixelsToWorld(WIDTH*0.4f - cameraZ));
         
         aiCars.forEach(ai -> ai.checkFront());
         updatePathDebug();
@@ -85,11 +89,19 @@ public final class Game {
         box2d.step(TIMESTEP, 8, 3);
         
         floor.update();
+        
+        collisionSounds.update();
+        carSounds.update();
+        skidSounds.update();
+        
+        aiCars.removeIf(car -> car.isDead());
+        cars.removeIf(car -> car.isDead());
+        blocks.removeIf(block -> block.isDead());
     }
         
     protected static void render() {
         c.background(255, 0, 0);
-        cameraZ = constrain(cameraZ, -300, 800);
+        cameraZ = constrain(cameraZ, -WIDTH/5, WIDTH*2/5);
         
 //        skybox.render(g);
         
@@ -215,6 +227,14 @@ public final class Game {
     
     public static float getDistanceToAudioListener(float cx, float cy, float cz) {
         return getDistanceToAudioListener(new Vec3(cx, cy, cz));
+    }
+    
+    public static float getDistanceToCameraTarget(Vec2 pos) {
+        return pos.sub(cameraTarget.getPosition()).length();
+    }
+    
+    public static float getDistanceToCameraTarget(float x, float y) {
+        return getDistanceToCameraTarget(new Vec2(x, y));
     }
     
     public static float getCamAngle() {

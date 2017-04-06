@@ -11,10 +11,7 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.joints.FrictionJointDef;
 import processing.core.PGraphics;
-import static util.Constants.CAR_CRASH;
-import static util.Constants.TYPE_BUILDING;
-import static util.Constants.createSound;
-import util.audio.SampleControls;
+import static util.Constants.*;
 import util.interfaces.Disposable;
 import util.interfaces.Drawable;
 
@@ -26,10 +23,10 @@ public final class Block implements Drawable, Disposable {
     
     private final Body body;
     
-    private final SampleControls crashSound;
-    
     private final float x, y, theta, l, l_pixels, w, w_pixels, h, h_pixels;
     private final Vec2 pos_pix;
+    
+    private boolean dead = false;
     
     public Block(float x, float y, float theta, float l, float w, float h, boolean fixed) {
         this.x = x;
@@ -72,13 +69,6 @@ public final class Block implements Drawable, Disposable {
         fric.maxTorque = 3000;
         
         box2d.createJoint(fric);
-        
-        crashSound = createSound(CAR_CRASH, false);
-        crashSound.gainGlide.setValue(0);
-        crashSound.pitchGlide.setValue(1);
-        crashSound.player.setKillOnEnd(false);
-        
-        userData.put("CRASH_SOUND", crashSound);
     }
     
     public Block(Vec2 pos, float theta, float l, float w, float h, boolean fixed) {
@@ -107,5 +97,11 @@ public final class Block implements Drawable, Disposable {
     @Override
     public void dispose() {
         box2d.world.destroyBody(body);
+        dead = true;
+    }
+    
+    @Override
+    public boolean isDead() {
+        return dead;
     }
 }

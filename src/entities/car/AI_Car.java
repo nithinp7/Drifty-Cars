@@ -26,6 +26,8 @@ public final class AI_Car extends Car {
     
     private final FrontObstacleDetector frontObstacleDetector;
     
+    private boolean isDead;
+    
     public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, PID obstaclePID) {
         super(x, y, theta, l, w, h);
         this.steeringControl = steeringControl;
@@ -41,6 +43,11 @@ public final class AI_Car extends Car {
     
     @Override 
     public void update() {
+        
+        if(getDistanceToCameraTarget(chasis.getPosition()) > 400) {
+            dispose();
+            return;
+        }
         
         Vec2 vel = chasis.getLinearVelocity();
         float speed = vel.length();
@@ -113,5 +120,11 @@ public final class AI_Car extends Car {
         super.render(g);
         //frontObstacleDetector.render();
         frontObstacleDetector.clear();
+    }
+    
+    @Override
+    public void dispose() {
+        super.dispose();
+        path.removeTemporarySegment(currentSegment);
     }
 }

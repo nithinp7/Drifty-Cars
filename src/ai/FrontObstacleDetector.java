@@ -59,7 +59,6 @@ public final class FrontObstacleDetector implements RayCastCallback {
     }
     
     public void update() {
-        
         pos.set(parentBody.getPosition());
         angle = parentBody.getAngle() + targetSteerAngle;
         

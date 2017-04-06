@@ -52,6 +52,8 @@ public final class Init {
         box2d.setScaleFactor(2);
         box2d.createWorld(new Vec2(0, 0));
         collisionSounds.init();
+        carSounds.init();
+        skidSounds.init();
         box2d.world.setContactListener(collisionSounds);
     }
     

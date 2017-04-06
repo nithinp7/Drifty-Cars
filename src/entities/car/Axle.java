@@ -15,13 +15,14 @@ import org.jbox2d.dynamics.joints.RevoluteJointDef;
 import processing.core.PGraphics;
 import processing.core.PShape;
 import static util.geometry.Shapes.createWheel;
+import util.interfaces.Disposable;
 import util.interfaces.Drawable;
 
 /**
  *
  * @author Nithin
  */
-public final class Axle implements Drawable {
+public final class Axle implements Drawable, Disposable {
     
     public final Vec2 prevPosL = new Vec2(0, 0), prevPosR = new Vec2(0, 0);
     
@@ -37,6 +38,7 @@ public final class Axle implements Drawable {
     private float slideSpeed = 0, forwardSpeed = 0;
     
     private final PShape wheelShapeA, wheelShapeB;
+    private boolean dead = false;
     
     public Axle(float spacing, float radius, float thickness, float theta, Body chasis, Vec2 chasisConnectionLocal, float maxTurn) {
         this.spacing = spacing;
@@ -214,5 +216,16 @@ public final class Axle implements Drawable {
             prevPosR.set(pixPosR);
             prevPosL.set(pixPosL);
         g.popStyle();
+    }
+    
+    @Override
+    public void dispose() {
+        dead = true;
+        box2d.world.destroyBody(axle);
+    }
+    
+    @Override
+    public boolean isDead() {
+        return dead;
     }
 }
