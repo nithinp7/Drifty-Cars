@@ -45,6 +45,7 @@ public final class UserCar extends Car {
         reverse = isKeyPressed(VK_R) || isMousePressed(RIGHT);
         
         throttle -= 0.05f*consumeMouseWheel();
+        throttle = constrain(throttle, 0, 1);
         
         Vec2 target = coordPixelsToWorld(new Vec2(c.mouseX, c.mouseY));
         dir = target.sub(frontAxle.axle.getWorldCenter());

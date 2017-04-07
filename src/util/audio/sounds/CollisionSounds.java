@@ -1,5 +1,5 @@
 
-package util.audio;
+package util.audio.sounds;
 
 import static main.Game.getDistanceToAudioListener;
 import org.jbox2d.callbacks.ContactImpulse;
@@ -8,6 +8,8 @@ import org.jbox2d.collision.Manifold;
 import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.contacts.Contact;
+import util.audio.AudioRequest;
+import util.audio.SoundManager;
 import static processing.core.PApplet.*;
 import static util.Constants.*;
 

@@ -168,14 +168,26 @@ public final class Path {
         return segments.stream().filter(seg -> seg.getClosestDistance(loc) < maxDist).min((seg, seg2) -> (int)signum(seg.getClosestDistance(loc) - seg2.getClosestDistance(loc)));
     }
     
+    public Optional<PathSegment> getClosestSegment(float x, float y, float maxDist) {
+        return getClosestSegment(new Vec2(x, y), maxDist);
+    }
+    
     public PathSegment createTemporarySegment(Vec2 pos) {
-        
         Optional<PathSegment> closest = getClosestSegment(pos, 100);
         if(!closest.isPresent()) return null;
         PathSegment closestSeg = closest.get();
         Vec2 shortestConnection = closestSeg.getShortestVector(pos);
         PathNode n1 = new PathNode(pos),
                  n2 = new PathNode(pos.sub(shortestConnection));
+        PathSegment temp = new PathSegment(n1, n2, true);
+        tempSegments.add(temp);
+        return temp;
+    }
+    
+    public PathSegment createTemporarySegment(Vec2 pos, Vec2 target) {
+        PathNode n1 = new PathNode(pos),
+                 n2 = new PathNode(target);
+        
         PathSegment temp = new PathSegment(n1, n2, true);
         tempSegments.add(temp);
         return temp;

@@ -26,7 +26,7 @@ public final class RoadSegment implements Drawable, Disposable {
     
     public RoadSegment(int i0, int j0, int i1, int j1, PathNode p, PathNode p1, float cellWidth, float cellHeight) {
         
-        path.createRawSegment(p, p1, true);
+        //path.createRawSegment(p, p1, true);
         
         this.i0 = i0;
         this.j0 = j0;

@@ -20,9 +20,9 @@ import procGen.MapGen;
 import processing.core.PGraphics;
 import shiffman.box2d.*;
 import util.Skybox;
-import util.audio.CarSounds;
-import util.audio.CollisionSounds;
-import util.audio.SkidSounds;
+import util.audio.sounds.CarSounds;
+import util.audio.sounds.CollisionSounds;
+import util.audio.sounds.SkidSounds;
 import static util.input.Input.*;
 
 /**
@@ -67,7 +67,8 @@ public final class Game {
         g = c.g;
         initAll();
         c.perspective(PI/3.0f, 1.f*WIDTH/HEIGHT, 3, 2000);
-        skybox = getSkybox(GHOST_TOWN_SKYBOX);
+        //skybox = getSkybox(GHOST_TOWN_SKYBOX);
+        skybox = getSkybox(FLATLAND_SKYBOX);
         
         floorLayer = floor.getFloorLayer();
         initialized = true;
@@ -134,6 +135,7 @@ public final class Game {
         cars.forEach(car -> car.updateTrackMarks());
 
         blocks.forEach(b -> b.render(g));
+        
         c.fill(0);
         path.render();
         c.stroke(0);
@@ -235,6 +237,10 @@ public final class Game {
     
     public static float getDistanceToCameraTarget(float x, float y) {
         return getDistanceToCameraTarget(new Vec2(x, y));
+    }
+    
+    public static Vec2 getCameraTarget() {
+        return cameraTarget.getPosition();
     }
     
     public static float getCamAngle() {

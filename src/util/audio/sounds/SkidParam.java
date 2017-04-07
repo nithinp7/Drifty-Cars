@@ -1,5 +1,5 @@
 
-package util.audio;
+package util.audio.sounds;
 
 /**
  *

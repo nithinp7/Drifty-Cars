@@ -82,7 +82,7 @@ public final class MapGen {
                     map[ti*2][tj*2+1] = TYPE_BUILDING;
                 } else {
                     tj++;
-                    if(tj>=endI) break;
+                    if(tj>=endJ) break;
                     map[ti*2+1][tj*2] = TYPE_BUILDING;
                 }
             }
@@ -96,7 +96,7 @@ public final class MapGen {
             Vec2 pos = box2d.coordPixelsToWorld(x, y);
             
             if(type==TYPE_BUILDING && buildings[i][j]==null) {
-                Block b = new Block(pos.x, pos.y, 0, cellWidth_world, cellHeight_world, 40, true);
+                Block b = new Block(pos.x, pos.y, 0, cellWidth_world*0.6f, cellHeight_world*0.6f, 40, false);
                 buildings[i][j] = b;
             } else if(type==TYPE_ROAD) {
                 int i_copy = i, j_copy = j;

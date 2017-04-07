@@ -14,7 +14,7 @@ import processing.core.PImage;
 import processing.opengl.PShader;
 import util.audio.AudioRequest;
 import util.audio.SampleControls;
-import util.audio.SkidParam;
+import util.audio.sounds.SkidParam;
 
 /**
  *

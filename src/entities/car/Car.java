@@ -11,8 +11,7 @@ import org.jbox2d.dynamics.*;
 import processing.core.PGraphics;
 import static util.Constants.*;
 import util.audio.AudioRequest;
-import util.audio.SampleControls;
-import util.audio.SkidParam;
+import util.audio.sounds.SkidParam;
 import util.interfaces.Disposable;
 import util.interfaces.Drawable;
 
@@ -96,7 +95,7 @@ public abstract class Car implements Drawable, Disposable {
     }
     
     private void drive() {
-        throttle = constrain(throttle, 0, 1);
+        throttle = constrain(throttle, 0, 1.4f);
         if(reverse) throttle = 0.2f;
         float speed = getForwardSpeed();
         Vec2 pos = chasis.getPosition();

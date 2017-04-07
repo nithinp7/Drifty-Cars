@@ -44,7 +44,7 @@ public final class AI_Car extends Car {
     @Override 
     public void update() {
         
-        if(getDistanceToCameraTarget(chasis.getPosition()) > 400) {
+        if(getDistanceToCameraTarget(chasis.getPosition()) > 300) {
             dispose();
             return;
         }
@@ -84,14 +84,14 @@ public final class AI_Car extends Car {
             //if(segment != currentSegment) steeringControl.clearIntegralAccumulation();
             currentSegment = segment;
         } else {
-            currentSegment = path.createTemporarySegment(pos);
+            currentSegment = path.createTemporarySegment(pos, getCameraTarget());//path.createTemporarySegment(pos);
         }
         
         //turn = steeringControl.update(segment.getPerpendicularDeviation(pos), segment.getAngularDeviation(angle));
         if(currentSegment != null) {   
             
-            float recommendedDeviation = frontObstacleDetector.getRecommendedDeviation(),//obstaclePID.update(0.5f*frontObstacleDetector.getRecommendedDeviation()),
-                  recommendedThrottle = frontObstacleDetector.getRecommendedThrottle();
+            float recommendedDeviation = 4*frontObstacleDetector.getRecommendedDeviation(),//obstaclePID.update(0.5f*frontObstacleDetector.getRecommendedDeviation()),
+                  recommendedThrottle = 0.6f*frontObstacleDetector.getRecommendedThrottle();
             
             float propDev = currentSegment.getPerpendicularDeviation(pos, carDir) - recommendedDeviation,
                   angDev = currentSegment.getAngularDeviation(carDir);
@@ -103,10 +103,10 @@ public final class AI_Car extends Car {
             turn = constrain(targetSteerAngle - steerAngle, -1, 1);
             frontObstacleDetector.setTargetSteerAngle(targetSteerAngle);
             //throttle = !reverse && abs(recommendedDeviation) > 0 ? map(abs(recommendedDeviation), 0, 0.7f, 0.25f, 0.6f) : 0.6f;
-            //throttle = !reverse ? constrain(0.4f*recommendedThrottle*recommendedThrottle+0.3f-getSlideSpeed()*0.5f, 0, 1f) : 1f;
-            throttle = !reverse ? constrain(0.8f*recommendedThrottle*recommendedThrottle-getSlideSpeed()*0.2f-0.05f*getForwardSpeed(), 0, 1f) : 1f;
-            
-            //throttle = 0.5f;
+            throttle = !reverse ? constrain(1.4f*recommendedThrottle*recommendedThrottle+0.3f-getSlideSpeed()*0.5f, 0, 1f) : 1f;
+            //throttle = !reverse ? constrain(0.8f*recommendedThrottle*recommendedThrottle-getSlideSpeed()*0.2f-0.03f*getForwardSpeed(), 0, 1f) : 1f;
+
+            throttle = 0.5f;
         } else {
             turn = 0;
             throttle = 0;

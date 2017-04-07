@@ -1,6 +1,8 @@
 
-package util.audio;
+package util.audio.sounds;
 
+import util.audio.AudioRequest;
+import util.audio.SoundManager;
 import static util.Constants.*;
 
 /**
