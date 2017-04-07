@@ -45,7 +45,9 @@ public final class SampleControls {
     
     public void stop() {
         player.reset();
+        player.pause(true);
         gainGlide.setValue(0);
+        gainGlide.setGlideTime(0);
     }
     
     public void setKillOnEnd(boolean kill) {

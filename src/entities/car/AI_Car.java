@@ -106,7 +106,7 @@ public final class AI_Car extends Car {
             throttle = !reverse ? constrain(1.4f*recommendedThrottle*recommendedThrottle+0.3f-getSlideSpeed()*0.5f, 0, 1f) : 1f;
             //throttle = !reverse ? constrain(0.8f*recommendedThrottle*recommendedThrottle-getSlideSpeed()*0.2f-0.03f*getForwardSpeed(), 0, 1f) : 1f;
 
-            throttle = 0.5f;
+            throttle = 0.1f;
         } else {
             turn = 0;
             throttle = 0;
