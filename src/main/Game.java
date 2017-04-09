@@ -1,12 +1,14 @@
 
 package main;
 
+import entities.car.ai.Ambient_AI;
 import ai.PID;
 import ai.Path;
 import beads.AudioContext;
 import beads.Gain;
 import entities.building.Block;
 import entities.car.*;
+import entities.car.ai.Pursuer_AI;
 import entities.surface.Floor;
 import static java.awt.event.KeyEvent.*;
 import java.util.ArrayList;
@@ -176,7 +178,13 @@ public final class Game {
     private static void updateAI_Debug() { 
         Vec2 pos = coordPixelsToWorld(c.mouseX, c.mouseY);
         if(consumeInput(VK_M)) {
-            AI_Car aiCar = new AI_Car(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, 0f), new PID(0.4f, 0f, 0f));
+            AI_Car aiCar = new Ambient_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, 0f));
+            aiCars.add(aiCar);
+            cars.add(aiCar);
+        }
+        
+        if(consumeInput(VK_N)) {
+            AI_Car aiCar = new Pursuer_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, 0f));
             aiCars.add(aiCar);
             cars.add(aiCar);
         }

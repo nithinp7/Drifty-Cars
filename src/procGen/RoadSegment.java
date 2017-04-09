@@ -2,7 +2,6 @@
 package procGen;
 
 import ai.Path.PathNode;
-import static main.Game.path;
 import processing.core.PGraphics;
 import util.interfaces.*;
 

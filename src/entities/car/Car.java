@@ -108,7 +108,7 @@ public abstract class Car implements Drawable, Disposable {
     
     private void updateSounds(Vec2 pos, float speed) {
         float dist = getDistanceToAudioListener(pos.x, pos.y, 0);
-        float vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.25f);
+        float vol = dist > 250 ? 0 : 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.25f);
         float pitch = (throttle*0.2f+constrain(speed, 0, 20)*0.7f*0.05f)*3.5f + 0.1f*sin(c.millis()/450.0f)*sin(c.millis()/250.f)+0.3f;
         
         engineSound.setGainTime(50);
@@ -118,10 +118,7 @@ public abstract class Car implements Drawable, Disposable {
 
         float slideSpeed = getSlideSpeed();
         float skidVolume = slideSpeed < 5.52f ? 0 : constrain(slideSpeed/14.0f, 0, 0.1f);
-//        skidSound.gainGlide.setGlideTime(400);
-//        skidSound.gainGlide.setValue(skidVolume*vol);
-//        skidSound.pitchGlide.setGlideTime(250);
-//        skidSound.pitchGlide.setValue(skidVolume*vol*0.6f+0.85f);
+        
         skidSound.setGainTime(400);
         skidSound.setGainValue(skidVolume*vol);
         skidSound.setPitchTime(250);

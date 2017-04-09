@@ -33,6 +33,10 @@ public final class SampleControls {
         });
     }
     
+    public void stop() {
+        
+    }
+    
     public boolean isEnded() {
         return ended;
     }
@@ -41,13 +45,7 @@ public final class SampleControls {
         ended = false;
         player.reset();
         player.start();
-    }
-    
-    public void stop() {
-        player.reset();
-        player.pause(true);
-        gainGlide.setValue(0);
-        gainGlide.setGlideTime(0);
+        player.pause(false);
     }
     
     public void setKillOnEnd(boolean kill) {

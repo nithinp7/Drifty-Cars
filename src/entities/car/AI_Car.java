@@ -14,10 +14,11 @@ import processing.core.PGraphics;
  *
  * @author Nithin
  */
-public final class AI_Car extends Car {
+public abstract class AI_Car extends Car {
     
-    private final PID steeringControl, obstaclePID;
-    private PathSegment currentSegment = null;
+    public PathSegment currentSegment = null;
+    
+    private final PID steeringControl;
     
     private float targetSteerAngle = 0;
     
@@ -26,15 +27,12 @@ public final class AI_Car extends Car {
     
     private final FrontObstacleDetector frontObstacleDetector;
     
-    private boolean isDead;
-    
-    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, PID obstaclePID) {
+    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
         super(x, y, theta, l, w, h);
         this.steeringControl = steeringControl;
         throttle = 0.6f;
         
         frontObstacleDetector = new FrontObstacleDetector(chasis);
-        this.obstaclePID = obstaclePID;// = new PID(0.1f, 0.1f, 0f);
     }
     
     public void checkFront() {
@@ -43,6 +41,8 @@ public final class AI_Car extends Car {
     
     @Override 
     public void update() {
+        
+        Vec2 pos = chasis.getPosition();
         
         if(getDistanceToCameraTarget(chasis.getPosition()) > 300) {
             dispose();
@@ -69,28 +69,17 @@ public final class AI_Car extends Car {
             }
         }
         
-        Vec2 pos = chasis.getPosition();
+        
         float angle = frontAxle.axle.getAngle();
         float steerAngle = angle-chasis.getAngle();
         
         Vec2 carDir = new Vec2(cos(angle), sin(angle));
         
-        path.removeTemporarySegment(currentSegment);
-        
-        Optional<PathSegment> seg = path.getClosestSegment(pos, 6);
-        
-        if(seg.isPresent()) {
-            PathSegment segment = seg.get();
-            //if(segment != currentSegment) steeringControl.clearIntegralAccumulation();
-            currentSegment = segment;
-        } else {
-            currentSegment = path.createTemporarySegment(pos, getCameraTarget());//path.createTemporarySegment(pos);
-        }
         
         //turn = steeringControl.update(segment.getPerpendicularDeviation(pos), segment.getAngularDeviation(angle));
         if(currentSegment != null) {   
             
-            float recommendedDeviation = 4*frontObstacleDetector.getRecommendedDeviation(),//obstaclePID.update(0.5f*frontObstacleDetector.getRecommendedDeviation()),
+            float recommendedDeviation = 4*frontObstacleDetector.getRecommendedDeviation(),
                   recommendedThrottle = 0.6f*frontObstacleDetector.getRecommendedThrottle();
             
             float propDev = currentSegment.getPerpendicularDeviation(pos, carDir) - recommendedDeviation,
@@ -103,10 +92,11 @@ public final class AI_Car extends Car {
             turn = constrain(targetSteerAngle - steerAngle, -1, 1);
             frontObstacleDetector.setTargetSteerAngle(targetSteerAngle);
             //throttle = !reverse && abs(recommendedDeviation) > 0 ? map(abs(recommendedDeviation), 0, 0.7f, 0.25f, 0.6f) : 0.6f;
-            throttle = !reverse ? constrain(1.4f*recommendedThrottle*recommendedThrottle+0.3f-getSlideSpeed()*0.5f, 0, 1f) : 1f;
-            //throttle = !reverse ? constrain(0.8f*recommendedThrottle*recommendedThrottle-getSlideSpeed()*0.2f-0.03f*getForwardSpeed(), 0, 1f) : 1f;
+            //throttle = !reverse ? constrain(1.4f*recommendedThrottle*recommendedThrottle+0.3f-getSlideSpeed()*0.5f, 0, 1f) : 1f;
+            throttle = getThrottle(recommendedThrottle);
 
-            //throttle = 0.1f;
+            //throttle = !reverse ? constrain(1.4f*recommendedThrottle-getSlideSpeed()*0.2f-0.03f*getForwardSpeed(), 0, 1f) : 1f;
+
         } else {
             turn = 0;
             throttle = 0;
@@ -114,6 +104,8 @@ public final class AI_Car extends Car {
         
         super.update();
     }
+    
+    protected abstract float getThrottle(float recommendedThrottle);
     
     @Override
     public void render(PGraphics g) {

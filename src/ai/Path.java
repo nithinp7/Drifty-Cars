@@ -164,6 +164,13 @@ public final class Path {
         else return null;
     }
     
+    public Optional<PathNode> getClosestNode(Vec2 loc, float maxDist) {
+        return nodes.
+                stream().
+                filter(node -> sqrt(pow(loc.x-node.x, 2) + pow(loc.y-node.y, 2)) < maxDist).
+                min((n, n1) -> (int)signum(sqrt(pow(loc.x-n.x, 2) + pow(loc.y-n.y, 2)) - sqrt(pow(loc.x-n1.x, 2) + pow(loc.y-n1.y, 2))));
+    }
+    
     public Optional<PathSegment> getClosestSegment(Vec2 loc, float maxDist) {
         return segments.stream().filter(seg -> seg.getClosestDistance(loc) < maxDist).min((seg, seg2) -> (int)signum(seg.getClosestDistance(loc) - seg2.getClosestDistance(loc)));
     }
@@ -192,7 +199,7 @@ public final class Path {
         tempSegments.add(temp);
         return temp;
     }
-    
+        
     public void removeTemporarySegment(PathSegment temp) {
         tempSegments.remove(temp);
     }

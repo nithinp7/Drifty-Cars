@@ -4,12 +4,12 @@ package procGen;
 import ai.Path.PathNode;
 import entities.building.Block;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Random;
 import static main.Game.*;
 import static main.Main.c;
 import org.jbox2d.common.Vec2;
-import static processing.core.PApplet.abs;
-import static processing.core.PConstants.*;
+import static processing.core.PApplet.*;
 import static util.Constants.*;
 
 /**
@@ -18,15 +18,15 @@ import static util.Constants.*;
  */
 public final class MapGen {
     
-    private static final int 
+    public static final int 
             TYPE_EMPTY = 0,
             TYPE_BUILDING = 1,
             TYPE_ROAD = 2;
     
-    private final float width, height,
-                        cellsSideLength,
-                        cellWidth, cellHeight,
-                        cellWidth_world, cellHeight_world;
+    public final float width, height,
+                       cellsSideLength,
+                       cellWidth, cellHeight,
+                       cellWidth_world, cellHeight_world;
     
     private final int subDivs,
                       cellsSideLength_int;
@@ -37,7 +37,7 @@ public final class MapGen {
     
     private int[][] map;
     private Block[][] buildings;
-    public PathNode[][] nodes;
+    private PathNode[][] nodes;
     
     private final ArrayList<RoadSegment> roads = new ArrayList<>();
     
@@ -63,6 +63,73 @@ public final class MapGen {
         
         emptyMap(0, 0, subDivs, subDivs);
         recalculateMap(0, 0, subDivs, subDivs);
+    }
+    
+    public MapCoord getClosestMapCoord(Vec2 loc) {
+        return getClosestMapCoord(loc.x, loc.y);
+    }
+    
+    public MapCoord getClosestMapCoord(float x, float y) {
+        float xLoc = x-box2d.scalarPixelsToWorld(tx+width/2-WIDTH/2),
+              yLoc = y-box2d.scalarPixelsToWorld(ty+height/2-HEIGHT/2);
+        int i = (int)(xLoc/cellWidth_world),
+            j = (int)(yLoc/cellHeight_world);
+        if(!isWithin(i, j)) return null;
+        return new MapCoord(i, j);
+    }
+    
+    public MapCoord getClosestMapCoordOfType(Vec2 loc, int type) {
+        return getClosestMapCoordOfType(loc, type, cellsSideLength_int);
+    }
+    
+    public MapCoord getClosestMapCoordOfType(Vec2 loc, int type, int maxSearchSize) {
+        return getClosestMapCoordOfType(getClosestMapCoord(loc), type, maxSearchSize);
+    }
+    
+    public MapCoord getClosestMapCoordOfType(MapCoord mc, int type) {
+        return getClosestMapCoordOfType(mc, type, cellsSideLength_int);
+    }
+    
+    public MapCoord getClosestMapCoordOfType(MapCoord mc, int type, int maxSearchSize) {
+        if(!isWithin(mc)) return null;
+        ArrayList<MapCoord> possible = new ArrayList<>();
+
+        for(int search=0; search<maxSearchSize/2; search++) {
+            for(int i=-search; i<=search; i++) {
+                if(isWithin(mc.i+i)) {
+                    if(isWithin(mc.j-search) && map[mc.i+i][mc.j-search]==type) 
+                        possible.add(new MapCoord(mc.i+i, mc.j-search)); 
+                    if(isWithin(mc.j+search) && map[mc.i+i][mc.j+search]==type) 
+                        possible.add(new MapCoord(mc.i+i, mc.j+search));
+                }
+                
+                if(isWithin(mc.j+i)) {
+                    if(isWithin(mc.i-search+1) && map[mc.i-search+1][mc.j+i]==type) 
+                        possible.add(new MapCoord(mc.i-search+1, mc.j+i)); 
+                    if(isWithin(mc.i+search-1) && map[mc.i+search-1][mc.j+i]==type) 
+                        possible.add(new MapCoord(mc.i+search-1, mc.j+i)); 
+                }
+            }
+            
+            Optional<MapCoord> closest = possible.
+                    stream().
+                    min((m, m1) -> (int)Math.signum(m.distanceTo(mc) - m1.distanceTo(mc)));
+            
+            if(closest.isPresent()) return closest.get();
+        }
+        return null;
+    }
+    
+    public boolean isWithin(int i) {
+        return i>0 && i<cellsSideLength_int;
+    }
+    
+    public boolean isWithin(MapCoord mc) {
+        return isWithin(mc.i, mc.j);
+    }
+    
+    public boolean isWithin(int i, int j) {
+        return isWithin(i) && isWithin(j);
     }
 
     private void recalculateMap(int startI, int startJ, int endI, int endJ) {
@@ -251,5 +318,49 @@ public final class MapGen {
         drawGround();
         drawBuildings();
         drawRoads();
+    }
+    
+    public class MapCoord {
+        public final int i, j;
+        
+        public MapCoord(int i, int j) {
+            this.i = i;
+            this.j = j;
+        }
+        
+        public boolean isSame(MapCoord mc) {
+            return i==mc.i && j==mc.j;
+        }
+        
+        public ArrayList<MapCoord> getAdjacentCoords() {
+            ArrayList<MapCoord> adj = new ArrayList<>();
+            
+            if(i+1<cellsSideLength) {
+                adj.add(new MapCoord(i+1, j));
+            }
+            if(i>0) {
+                adj.add(new MapCoord(i-1, j));
+            }
+            if(j+1<cellsSideLength) {
+                adj.add(new MapCoord(i, j+1));
+            }
+            if(j>0) {
+                adj.add(new MapCoord(i, j-1));
+            }
+            
+            return adj;
+        }
+        
+        public int getTileType() {
+            return map[i][j];
+        }
+        
+        public PathNode getNode() {
+            return nodes[i][j];
+        }
+        
+        public float distanceTo(MapCoord mc) {
+            return sqrt(pow(mc.i-i, 2) + pow(mc.j-j, 2));
+        }
     }
 }

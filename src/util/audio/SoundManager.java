@@ -19,6 +19,8 @@ public final class SoundManager<T> {
     private final ArrayList<AudioRequest<T>> requests = new ArrayList<>();
     private final Comparator<AudioRequest<T>> priorityComparator;
     
+    private final AudioRequest<T> clearReq = new AudioRequest<>(0, 1, 0, 1, null);
+    
     public SoundManager(int type, int tracks, boolean loop, Comparator<AudioRequest<T>> priorityComparator) {
         for(int i=0; i<tracks; i++) sampleControls.add(createSound(type, loop));
         this.priorityComparator = priorityComparator;
@@ -47,10 +49,7 @@ public final class SoundManager<T> {
     
     public void removeRequest(AudioRequest<T> request) {
         int indexOf = requests.indexOf(request);
-        if(indexOf < tracks) {
-            SampleControls s = sampleControls.get(indexOf);
-            s.stop();
-        }
+        if(indexOf<tracks) clearReq.playSound(sampleControls.get(indexOf), null);
         requests.remove(request);
     }
 }
