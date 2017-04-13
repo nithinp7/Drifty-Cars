@@ -3,6 +3,7 @@ package entities.building;
 
 import java.util.HashMap;
 import static main.Game.*;
+import static main.Main.c;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -10,8 +11,11 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.joints.FrictionJointDef;
+import static processing.core.PConstants.QUADS;
 import processing.core.PGraphics;
+import processing.core.PShape;
 import static util.Constants.*;
+import static util.geometry.Shapes.createBox;
 import util.interfaces.Disposable;
 import util.interfaces.Drawable;
 
@@ -20,6 +24,8 @@ import util.interfaces.Drawable;
  * @author Nithin
  */
 public final class Block implements Drawable, Disposable {
+    
+    private final PShape shape;
     
     private final Body body;
     
@@ -69,6 +75,13 @@ public final class Block implements Drawable, Disposable {
         fric.maxTorque = 3000;
         
         box2d.createJoint(fric);
+        
+        shape = c.createShape();
+        shape.translate(0, 0, h_pixels/2);
+        shape.beginShape(QUADS);
+        shape.fill(90, 60, 70);
+        createBox(shape, l_pixels, w_pixels, h_pixels);
+        shape.endShape();
     }
     
     public Block(Vec2 pos, float theta, float l, float w, float h, boolean fixed) {
@@ -82,16 +95,11 @@ public final class Block implements Drawable, Disposable {
     @Override
     public void render(PGraphics g) {
         Vec2 pos = box2d.coordWorldToPixels(body.getPosition());
-        g.pushStyle();
         g.pushMatrix();
-            //g.noStroke();
-            g.translate(pos.x, pos.y, h_pixels/2);
+            g.translate(pos.x, pos.y);
             g.rotate(-body.getAngle());
-            //g.fill(176, 80, 180);
-            g.fill(90, 60, 70);
-            g.box(l_pixels, w_pixels, h_pixels);
+            g.shape(shape);
         g.popMatrix();
-        g.popStyle();
     }
     
     @Override

@@ -46,4 +46,41 @@ public final class Shapes {
         
         return wheel;
     }
+    
+    public static void createBox(PShape shape, float l, float w, float h) {
+        
+        l/=2;
+        w/=2;
+        h/=2;
+        
+        shape.vertex(-l, -w, -h);
+        shape.vertex(l, -w, -h);
+        shape.vertex(l, w, -h);
+        shape.vertex(-l, w, -h);
+        
+        shape.vertex(-l, -w, -h);
+        shape.vertex(-l, w, -h);
+        shape.vertex(-l, w, h);
+        shape.vertex(-l, -w, h);
+        
+        shape.vertex(-l, -w, -h);
+        shape.vertex(l, -w, -h);
+        shape.vertex(l, -w, h);
+        shape.vertex(-l, -w, h);
+        
+        shape.vertex(-l, -w, h);
+        shape.vertex(l, -w, h);
+        shape.vertex(l, w, h);
+        shape.vertex(-l, w, h);
+        
+        shape.vertex(l, -w, -h);
+        shape.vertex(l, w, -h);
+        shape.vertex(l, w, h);
+        shape.vertex(l, -w, h);
+        
+        shape.vertex(-l, w, -h);
+        shape.vertex(l, w, -h);
+        shape.vertex(l, w, h);
+        shape.vertex(-l, w, h);
+    }
 }

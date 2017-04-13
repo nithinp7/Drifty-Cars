@@ -49,7 +49,7 @@ public final class Floor {
         //floorLayer.fill(140, 130, 110, 255); //ghost town
         floorLayer.noStroke();
         
-        floorLayer.rect(w/2, h/2, w, h);
+        //floorLayer.rect(w/2, h/2, w, h);
         floorLayer.endDraw();
     }
     
@@ -60,7 +60,8 @@ public final class Floor {
         if(abs(dif.x) < w/4 && abs(dif.y) < h/4) return;
         
         PImage temp = floorLayer.get((int)dif.x, (int)dif.y, w, h);
-        floorLayer.rect(w/2, h/2, w, h);
+        //floorLayer.rect(w/2, h/2, w, h);
+        floorLayer.clear();
         floorLayer.image(temp, 0, 0, w, h);
         
         floorTrans.set(cx, cy);
@@ -69,7 +70,10 @@ public final class Floor {
     public void render() {
         int imMode = c.g.imageMode;
         c.imageMode(CENTER);
+        c.pushMatrix();
+        c.translate(0, 0, 1);
         c.image(floorLayer, floorTrans.x+WIDTH/2, floorTrans.y+HEIGHT/2, w, h);
+        c.popMatrix();
         c.imageMode(imMode);
     }
     

@@ -184,20 +184,26 @@ public final class Path {
         if(!closest.isPresent()) return null;
         PathSegment closestSeg = closest.get();
         Vec2 shortestConnection = closestSeg.getShortestVector(pos);
-        PathNode n1 = new PathNode(pos),
-                 n2 = new PathNode(pos.sub(shortestConnection));
-        PathSegment temp = new PathSegment(n1, n2, true);
-        tempSegments.add(temp);
-        return temp;
+        PathNode n = new PathNode(pos),
+                 n1 = new PathNode(pos.sub(shortestConnection));
+        PathSegment seg = new PathSegment(n, n1, true);
+        tempSegments.add(seg);
+        return seg;
     }
     
-    public PathSegment createTemporarySegment(Vec2 pos, Vec2 target) {
-        PathNode n1 = new PathNode(pos),
-                 n2 = new PathNode(target);
+    public PathSegment createTemporarySegment(Vec2 pos, Vec2 target, boolean directional) {
+        PathNode n = new PathNode(pos),
+                 n1 = new PathNode(target);
         
-        PathSegment temp = new PathSegment(n1, n2, true);
-        tempSegments.add(temp);
-        return temp;
+        PathSegment seg = new PathSegment(n, n1, directional);
+        tempSegments.add(seg);
+        return seg;
+    }
+    
+    public PathSegment createTemporarySegment(PathNode n, PathNode n1, boolean directional) {
+        PathSegment seg = new PathSegment(n, n1, directional);
+        tempSegments.add(seg);
+        return seg;
     }
         
     public void removeTemporarySegment(PathSegment temp) {
@@ -226,9 +232,12 @@ public final class Path {
     
     public void render() {
         c.pushStyle();
-            nodes.forEach(node -> node.render());
+        c.pushMatrix();
+            c.translate(0, 0, 2);
+            //nodes.forEach(node -> node.render());
             segments.forEach(segment -> segment.render());
-            tempSegments.forEach(segment -> segment.render());
+            //tempSegments.forEach(segment -> segment.render());
+        c.popMatrix();
         c.popStyle();
     }
     

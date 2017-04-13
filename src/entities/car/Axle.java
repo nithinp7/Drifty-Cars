@@ -199,7 +199,8 @@ public final class Axle implements Drawable, Disposable {
         
         g.pushStyle();
             g.strokeWeight(1.5f);
-            g.stroke(45, 38, 45, 60);
+            //g.stroke(45, 38, 45, 60);
+            g.stroke(20, 16, 20, 60);
             float angle = axle.getAngle(), sin = sin(angle), cos = cos(angle);
             Vec2 pos = axle.getPosition(), 
                  posR = pos.add(new Vec2(wheelA.x*cos - wheelA.y*sin, wheelA.x*sin + wheelA.y*cos)), 

@@ -64,6 +64,7 @@ public final class Init {
     
     private static void initVehicles() {
         Car car = new UserCar(0, 0, -PI/4, 6, 1.8f, 1.2f);
+        //Car car = new UserCar(0, 0, -PI/4, 6, 2.5f, 2);
         cars.add(car);
         cameraTarget = car.chasis;
     }

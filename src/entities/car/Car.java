@@ -30,7 +30,7 @@ public abstract class Car implements Drawable, Disposable {
     public final Body chasis;
     public final Axle frontAxle, rearAxle;
     
-    private final float l, l_pixels, w, w_pixels, h, h_pixels;
+    protected final float l, l_pixels, w, w_pixels, h, h_pixels;
     
     private final Color color;
     private final AudioRequest<Float> engineSound;
@@ -95,7 +95,7 @@ public abstract class Car implements Drawable, Disposable {
     }
     
     private void drive() {
-        throttle = constrain(throttle, 0, 1.4f);
+        //throttle = constrain(throttle, 0, 2.6f);
         if(reverse) throttle = 0.2f;
         float speed = getForwardSpeed();
         Vec2 pos = chasis.getPosition();
@@ -130,18 +130,24 @@ public abstract class Car implements Drawable, Disposable {
         frontAxle.axle.applyTorque(turn*maxTurnTorque);
     }
     
-    public float getForwardSpeed() {
+    public final float getForwardSpeed() {
         return frontAxle.getForwardSpeed();
     }
     
-    public float getSlideSpeed() {
+    public final float getSlideSpeed() {
         return min(frontAxle.getSlideSpeed(), rearAxle.getSlideSpeed());
     }
     
     @Override
-    public void render(PGraphics g) {
+    public final void render(PGraphics g) {
         frontAxle.render(g);
         rearAxle.render(g);
+        renderCar(g);
+    }
+    
+    protected void renderCar(PGraphics g) {}
+    
+    protected final void renderDefCar(PGraphics g) {
         g.pushMatrix();
         g.pushStyle();
             Vec2 pos = box2d.coordWorldToPixels(chasis.getPosition());
@@ -152,19 +158,11 @@ public abstract class Car implements Drawable, Disposable {
             g.strokeWeight(1.5f);
             g.stroke(30, 40, 30);
             g.box(l_pixels, w_pixels, h_pixels);
-//            g.translate(l_pixels, w_pixels/4);
-//            g.emissive(150, 20, 20);
-//            g.fill(200, 20, 20);
-//            g.noStroke();
-//            g.sphere(w_pixels);
-//            g.emissive(0);
-//            g.translate(0, -w_pixels/2);
-//            g.sphere(w_pixels);
         g.popStyle();
         g.popMatrix();
     }
     
-    public void updateTrackMarks() {
+    public final void updateTrackMarks() {
         frontAxle.updateTrackMarks(brake);
         rearAxle.updateTrackMarks(brake);
     }
@@ -180,7 +178,7 @@ public abstract class Car implements Drawable, Disposable {
     }
     
     @Override
-    public boolean isDead() {
+    public final boolean isDead() {
         return dead;
     }
 }

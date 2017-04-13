@@ -1,7 +1,6 @@
 
 package procGen;
 
-import ai.Path.PathNode;
 import processing.core.PGraphics;
 import util.interfaces.*;
 
@@ -23,9 +22,7 @@ public final class RoadSegment implements Drawable, Disposable {
             DIR_LEFT = 2,
             DIR_UP = 3;
     
-    public RoadSegment(int i0, int j0, int i1, int j1, PathNode p, PathNode p1, float cellWidth, float cellHeight) {
-        
-        //path.createRawSegment(p, p1, true);
+    public RoadSegment(int i0, int j0, int i1, int j1, float cellWidth, float cellHeight) {
         
         this.i0 = i0;
         this.j0 = j0;

@@ -37,7 +37,6 @@ public final class MapGen {
     
     private int[][] map;
     private Block[][] buildings;
-    private PathNode[][] nodes;
     
     private final ArrayList<RoadSegment> roads = new ArrayList<>();
     
@@ -57,7 +56,6 @@ public final class MapGen {
         
         map = new int[cellsSideLength_int][cellsSideLength_int];
         buildings = new Block[cellsSideLength_int][cellsSideLength_int];
-        nodes = new PathNode[cellsSideLength_int][cellsSideLength_int];
         
         r = new Random();
         
@@ -70,10 +68,9 @@ public final class MapGen {
     }
     
     public MapCoord getClosestMapCoord(float x, float y) {
-        float xLoc = x-box2d.scalarPixelsToWorld(tx+width/2-WIDTH/2),
-              yLoc = y-box2d.scalarPixelsToWorld(ty+height/2-HEIGHT/2);
-        int i = (int)(xLoc/cellWidth_world),
-            j = (int)(yLoc/cellHeight_world);
+        Vec2 world = new Vec2(x, y).sub(box2d.vectorPixelsToWorld(tx-width/2, ty-height/2).add(box2d.coordPixelsToWorld(WIDTH/2, HEIGHT/2)));
+        int i = round(world.x/cellWidth_world),
+            j = -round(world.y/cellHeight_world);
         if(!isWithin(i, j)) return null;
         return new MapCoord(i, j);
     }
@@ -82,16 +79,17 @@ public final class MapGen {
         return getClosestMapCoordOfType(loc, type, cellsSideLength_int);
     }
     
-    public MapCoord getClosestMapCoordOfType(Vec2 loc, int type, int maxSearchSize) {
-        return getClosestMapCoordOfType(getClosestMapCoord(loc), type, maxSearchSize);
+    public MapCoord getClosestMapCoordOfType(MapCoord mc, int type, int maxSearchSize) {
+        return getClosestMapCoordOfType(mc.getPosition(), type, maxSearchSize);
     }
     
     public MapCoord getClosestMapCoordOfType(MapCoord mc, int type) {
         return getClosestMapCoordOfType(mc, type, cellsSideLength_int);
     }
     
-    public MapCoord getClosestMapCoordOfType(MapCoord mc, int type, int maxSearchSize) {
-        if(!isWithin(mc)) return null;
+    public MapCoord getClosestMapCoordOfType(Vec2 loc, int type, int maxSearchSize) {
+        MapCoord mc = getClosestMapCoord(loc);
+        if(mc == null) return null;
         ArrayList<MapCoord> possible = new ArrayList<>();
 
         for(int search=0; search<maxSearchSize/2; search++) {
@@ -113,15 +111,15 @@ public final class MapGen {
             
             Optional<MapCoord> closest = possible.
                     stream().
-                    min((m, m1) -> (int)Math.signum(m.distanceTo(mc) - m1.distanceTo(mc)));
+                    min((m, m1) -> (int)Math.signum(m.distanceTo(loc) - m1.distanceTo(loc)));
             
             if(closest.isPresent()) return closest.get();
         }
         return null;
     }
     
-    public boolean isWithin(int i) {
-        return i>0 && i<cellsSideLength_int;
+    private boolean isWithin(int i) {
+        return i>=0 && i<cellsSideLength_int;
     }
     
     public boolean isWithin(MapCoord mc) {
@@ -163,37 +161,23 @@ public final class MapGen {
             Vec2 pos = box2d.coordPixelsToWorld(x, y);
             
             if(type==TYPE_BUILDING && buildings[i][j]==null) {
-                Block b = new Block(pos.x, pos.y, 0, cellWidth_world*0.6f, cellHeight_world*0.6f, 40, false);
+                Block b = new Block(pos.x, pos.y, 0, cellWidth_world*0.6f, cellHeight_world*0.6f, 40, true);
                 buildings[i][j] = b;
             } else if(type==TYPE_ROAD) {
                 int i_copy = i, j_copy = j;
                 
                 //pos.set(pos.x-2*cellWidth_world, pos.y-2*cellHeight_world);
                 
-                PathNode p;
-                if(nodes[i][j]==null){
-                    p = path.createRawNode(pos.x, pos.y);
-                    nodes[i][j] = p;
-                } else p = nodes[i][j];
-                       
                 if(i+1<cellsSideLength_int && map[i+1][j]==TYPE_ROAD) {
                     if(roads.stream().noneMatch(road -> road.isSame(i_copy, j_copy, i_copy+1, j_copy))) {
-                        PathNode p1;
-                        if(nodes[i+1][j]==null){
-                            p1 = path.createRawNode(pos.x+cellWidth_world, pos.y);
-                            nodes[i+1][j] = p1;
-                        } else p1 = nodes[i+1][j];
-                        roads.add(new RoadSegment(i, j, i+1, j, p, p1, cellWidth, cellHeight));
+                        
+                        roads.add(new RoadSegment(i, j, i+1, j, cellWidth, cellHeight));
                     }
                 }
                 if(j+1<cellsSideLength_int && map[i][j+1]==TYPE_ROAD) {
                     if(roads.stream().noneMatch(road -> road.isSame(i_copy, j_copy, i_copy, j_copy+1))) {
-                        PathNode p1;
-                        if(nodes[i][j+1]==null){
-                            p1 = path.createRawNode(pos.x, pos.y-cellHeight_world);
-                            nodes[i][j+1] = p1;
-                        } else p1 = nodes[i][j+1];
-                        roads.add(new RoadSegment(i, j, i, j+1, p, p1, cellWidth, cellHeight));
+                        
+                        roads.add(new RoadSegment(i, j, i, j+1, cellWidth, cellHeight));
                     }
                 }
             }
@@ -220,11 +204,6 @@ public final class MapGen {
             Block b = buildings[i][j];
             if(b!=null) b.dispose();
             buildings[i][j] = null;
-            PathNode p = nodes[i][j];
-            if(p != null) {
-                path.removeNode(p);
-                nodes[i][j] = null;
-            }
         }
         //DEAD FLAG NOT SET
         roads.removeIf(road -> road.withinBounds(startI, startJ, endI, endJ));
@@ -233,29 +212,21 @@ public final class MapGen {
     private void translateMap(int ti, int tj) {
         int[][] temp = new int[cellsSideLength_int][cellsSideLength_int];
         Block[][] tempBuildings = new Block[cellsSideLength_int][cellsSideLength_int];
-        PathNode[][] tempNodes = new PathNode[cellsSideLength_int][cellsSideLength_int];
         for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
             int copy_i = i-2*ti, copy_j = j-2*tj;
             if(copy_i<cellsSideLength_int && copy_i>=0 && copy_j<cellsSideLength_int && copy_j>=0) {
                 temp[i][j] = map[copy_i][copy_j];
                 tempBuildings[i][j] = buildings[copy_i][copy_j];
-                tempNodes[i][j] = nodes[copy_i][copy_j];
             } else {
                 temp[i][j] = TYPE_EMPTY;
                 Block b = buildings[cellsSideLength_int-1-i][cellsSideLength_int-1-j];
                 if(b != null) b.dispose();
                 tempBuildings[i][j] = null;
-                PathNode p = nodes[cellsSideLength_int-1-i][cellsSideLength_int-1-j];
-                if(p != null) {
-                    path.removeNode(p);
-                }
-                tempNodes[i][j] = null;
             }
         }
         translateRoads(ti*2, tj*2);
         map = temp;
         buildings = tempBuildings;
-        nodes = tempNodes;
 
         if(ti > 0) recalculateMap(0, 0, ti+1, subDivs);
         else recalculateMap(subDivs+ti, 0, subDivs, subDivs);
@@ -287,7 +258,7 @@ public final class MapGen {
         //c.rectMode(CENTER);
         c.pushStyle();
         c.pushMatrix();
-        c.translate(tx-width/2+WIDTH/2, ty-height/2+HEIGHT/2, 0.5f);
+        c.translate(tx-width/2+WIDTH/2, ty-height/2+HEIGHT/2, -0.5f);
         c.noStroke();
         c.fill(30);
         
@@ -335,13 +306,13 @@ public final class MapGen {
         public ArrayList<MapCoord> getAdjacentCoords() {
             ArrayList<MapCoord> adj = new ArrayList<>();
             
-            if(i+1<cellsSideLength) {
+            if(i+1<cellsSideLength_int) {
                 adj.add(new MapCoord(i+1, j));
             }
             if(i>0) {
                 adj.add(new MapCoord(i-1, j));
             }
-            if(j+1<cellsSideLength) {
+            if(j+1<cellsSideLength_int) {
                 adj.add(new MapCoord(i, j+1));
             }
             if(j>0) {
@@ -355,12 +326,22 @@ public final class MapGen {
             return map[i][j];
         }
         
-        public PathNode getNode() {
-            return nodes[i][j];
-        }
-        
         public float distanceTo(MapCoord mc) {
             return sqrt(pow(mc.i-i, 2) + pow(mc.j-j, 2));
+        }
+        
+        public float distanceTo(Vec2 loc) {
+            Vec2 worldPos = getPosition();
+            return sqrt(pow(loc.x-worldPos.x, 2) + pow(loc.y-worldPos.y, 2));
+        }
+        
+        public Vec2 getPosition() {
+            return box2d.coordPixelsToWorld(tx-width/2+WIDTH/2+i*cellWidth, ty-height/2+HEIGHT/2+j*cellHeight);
+        }
+        
+        @Override
+        public String toString() {
+            return "(" + i + ", " + j + ")";
         }
     }
 }

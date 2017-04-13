@@ -2,13 +2,15 @@
 package entities.car;
 
 import ai.FrontObstacleDetector;
+import ai.FrontObstacleDetector.AdditionalCheck;
 import ai.PID;
 import ai.Path.PathSegment;
-import java.util.Optional;
+import java.util.HashMap;
 import static main.Game.*;
 import org.jbox2d.common.Vec2;
 import static processing.core.PApplet.*;
 import processing.core.PGraphics;
+import static util.Constants.TYPE_BUILDING;
 
 /**
  *
@@ -25,7 +27,11 @@ public abstract class AI_Car extends Car {
     private int lowSpeedCounter = 0;
     private int reverseCounter = 0;
     
-    private final FrontObstacleDetector frontObstacleDetector;
+    protected boolean checkFront = true;
+    
+    protected final FrontObstacleDetector frontObstacleDetector;
+    
+    
     
     public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
         super(x, y, theta, l, w, h);
@@ -35,7 +41,7 @@ public abstract class AI_Car extends Car {
         frontObstacleDetector = new FrontObstacleDetector(chasis);
     }
     
-    public void checkFront() {
+    public final void checkFront() {
         frontObstacleDetector.update();
     }
     
@@ -77,10 +83,10 @@ public abstract class AI_Car extends Car {
         
         
         //turn = steeringControl.update(segment.getPerpendicularDeviation(pos), segment.getAngularDeviation(angle));
-        if(currentSegment != null) {   
+        if(currentSegment != null) {  
             
-            float recommendedDeviation = 4*frontObstacleDetector.getRecommendedDeviation(),
-                  recommendedThrottle = 0.6f*frontObstacleDetector.getRecommendedThrottle();
+            float recommendedDeviation = !checkFront? 0 : 4*frontObstacleDetector.getRecommendedDeviation(),
+                  recommendedThrottle = !checkFront? 1 : 0.6f*frontObstacleDetector.getRecommendedThrottle();
             
             float propDev = currentSegment.getPerpendicularDeviation(pos, carDir) - recommendedDeviation,
                   angDev = currentSegment.getAngularDeviation(carDir);
@@ -108,11 +114,13 @@ public abstract class AI_Car extends Car {
     protected abstract float getThrottle(float recommendedThrottle);
     
     @Override
-    public void render(PGraphics g) {
-        super.render(g);
+    protected final void renderCar(PGraphics g) {
         //frontObstacleDetector.render();
         frontObstacleDetector.clear();
+        renderAiCar(g);
     }
+    
+    protected void renderAiCar(PGraphics g) {}
     
     @Override
     public void dispose() {

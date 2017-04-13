@@ -39,7 +39,9 @@ public final class FrontObstacleDetector implements RayCastCallback {
             
     private final Body parentBody;
     
-    private float targetSteerAngle = 0;
+    private float targetSteerAngle = 0, scale = 1;
+    
+    private AdditionalCheck ac = null;
     
     public FrontObstacleDetector(Body parentBody) {
         this.parentBody = parentBody;
@@ -58,12 +60,16 @@ public final class FrontObstacleDetector implements RayCastCallback {
         targetSteerAngle += (a-targetSteerAngle)*0.5f;
     }
     
+    public void setScale(float scale) {
+        this.scale = constrain(scale, 0, 1);
+    }
+    
     public void update() {
         pos.set(parentBody.getPosition());
         angle = parentBody.getAngle() + targetSteerAngle;
         
         for(int i=0; i<9; i++) {
-            float len = lengths[i], ang = angle+relAngles[i];
+            float len = scale*lengths[i], ang = angle+relAngles[i];
             Vec2 ray = rays[i];
             ray.set(len*cos(ang), len*sin(ang));
             raycast(pos, ray.add(pos));
@@ -80,6 +86,9 @@ public final class FrontObstacleDetector implements RayCastCallback {
         float dist = dif.length();
         
         if(dist < 3) return -1;
+        
+        if(ac!=null && ac.call(fxtr, point, norm, frac)==-1) 
+            return -1;
         
         dif.normalize();
 
@@ -103,6 +112,14 @@ public final class FrontObstacleDetector implements RayCastCallback {
         return 0;
     }
     
+    public static interface AdditionalCheck {
+        public float call(Fixture fxtr, Vec2 point, Vec2 norm, float frac);
+    }
+    
+    public void addCheck(AdditionalCheck ac) {
+        this.ac = ac;
+    }
+    
     public void render() {
         Vec2 pixPos = box2d.coordWorldToPixels(pos);
         
@@ -115,7 +132,7 @@ public final class FrontObstacleDetector implements RayCastCallback {
                 if(rayBlocked) c.stroke(255, 100, 100);
                 else c.stroke(100, 240, 50);
                 
-                c.line(pixPos.x, pixPos.y, pixPos.x+pixRay.x, pixPos.y+pixRay.y);
+                c.line(pixPos.x, pixPos.y, 2, pixPos.x+pixRay.x, pixPos.y+pixRay.y, 2);
             }
         c.popStyle();
     }
