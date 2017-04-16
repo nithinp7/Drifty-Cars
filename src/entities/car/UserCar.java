@@ -1,23 +1,14 @@
 
 package entities.car;
 
-import ai.Path.PathSegment;
 import static java.awt.event.KeyEvent.*;
-import java.util.ArrayList;
-import static main.Main.c;
 import static processing.core.PApplet.*;
 import static main.Game.*;
 import static main.Main.c;
 import org.jbox2d.common.Vec2;
-import procGen.MapGen.MapCoord;
-import static procGen.MapGen.TYPE_ROAD;
-import static processing.core.PConstants.GROUP;
-import static processing.core.PConstants.QUADS;
-import static processing.core.PConstants.TRIANGLE;
 import processing.core.PGraphics;
-import processing.core.PShape;
-import static util.geometry.Shapes.createBox;
 import static util.input.Input.*;
+import static util.Constants.*;
 
 /**
  *
@@ -25,12 +16,15 @@ import static util.input.Input.*;
  */
 public final class UserCar extends Car {
     
+    private static final float TERM_SPEED = 50f,
+                               DRAG_CONST = MAX_CAR_THRUST*1.4f / TERM_SPEED / TERM_SPEED; 
+    
     public float targetSteerAngle = 0;
     
     public Vec2 dir = new Vec2(0, 0);
     
     public UserCar(float x, float y, float theta, float l, float w, float h) {
-        super(x, y, theta, l, w, h);
+        super(x, y, theta, l, w, h, DRAG_CONST);
     }
     
     public UserCar(Vec2 pos, float theta, float l, float w, float h) {
@@ -54,7 +48,7 @@ public final class UserCar extends Car {
         float speed = getForwardSpeed();
         
         throttle -= 0.05f*consumeMouseWheel();
-        throttle = constrain(throttle, 0, 0.4f);
+        throttle = constrain(throttle, 0, 1.4f);
         
         Vec2 target = coordPixelsToWorld(new Vec2(c.mouseX, c.mouseY));
         dir = target.sub(frontAxle.axle.getWorldCenter());

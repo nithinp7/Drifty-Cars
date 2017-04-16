@@ -34,7 +34,7 @@ public final class Main extends PApplet {
         WIDTH = width;
         HEIGHT = height;
         
-        new Thread(() -> init()).start();
+        new Thread(Game::init).start();
         
         System.out.println(WIDTH + ", " + HEIGHT);
     }

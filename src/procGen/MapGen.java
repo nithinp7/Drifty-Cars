@@ -161,7 +161,7 @@ public final class MapGen {
             Vec2 pos = box2d.coordPixelsToWorld(x, y);
             
             if(type==TYPE_BUILDING && buildings[i][j]==null) {
-                Block b = new Block(pos.x, pos.y, 0, cellWidth_world*0.6f, cellHeight_world*0.6f, 40, true);
+                Block b = new Block(pos.x, pos.y, 0, cellWidth_world*0.6f, cellHeight_world*0.6f, 15, true);
                 buildings[i][j] = b;
             } else if(type==TYPE_ROAD) {
                 int i_copy = i, j_copy = j;

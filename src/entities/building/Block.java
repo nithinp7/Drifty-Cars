@@ -60,11 +60,12 @@ public final class Block implements Drawable, Disposable {
         bd.position.set(x, y);
         bd.angle = theta;
         
-        HashMap<String, Object> userData = new HashMap<>();
-        userData.put("TYPE", TYPE_BUILDING);
+        //HashMap<String, Object> userData = new HashMap<>();
+        //userData.put("TYPE", TYPE_BUILDING);
         
         body = box2d.createBody(bd);
-        body.createFixture(fd).setUserData(userData);
+        body.createFixture(fd);
+        //body.setUserData(userData);
         
         FrictionJointDef fric = new FrictionJointDef();
         fric.bodyA = body;

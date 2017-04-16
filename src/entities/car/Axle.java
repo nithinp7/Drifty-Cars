@@ -1,7 +1,9 @@
 
 package entities.car;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 import static main.Main.*;
 import static main.Game.*;
 import static util.Constants.*;
@@ -12,19 +14,24 @@ import org.jbox2d.dynamics.joints.FrictionJoint;
 import org.jbox2d.dynamics.joints.FrictionJointDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
+import particles.SmokeParticle;
 import processing.core.PGraphics;
 import processing.core.PShape;
 import static util.geometry.Shapes.createWheel;
 import util.interfaces.Disposable;
 import util.interfaces.Drawable;
+import util.interfaces.PostDraw;
 
 /**
  *
  * @author Nithin
  */
-public final class Axle implements Drawable, Disposable {
+public final class Axle implements Drawable, Disposable, PostDraw {
     
     public final Vec2 prevPosL = new Vec2(0, 0), prevPosR = new Vec2(0, 0);
+    
+    private final ArrayList<SmokeParticle> smoke = new ArrayList<>();
+    private static final int SMOKE_PRTS_COUNT = 5;
     
     protected final Body axle, chasis;
     protected final RevoluteJoint chasisConnector; 
@@ -71,12 +78,13 @@ public final class Axle implements Drawable, Disposable {
         bd.position.set(chasis.getWorldPoint(chasisConnectionLocal));
         bd.angle = theta;
         
-        HashMap<String, Integer> userData = new HashMap<>();
-        userData.put("TYPE", TYPE_CAR);
+        //HashMap<String, Integer> userData = new HashMap<>();
+        //userData.put("TYPE", TYPE_CAR);
         
         axle = box2d.createBody(bd);
-        axle.createFixture(fd_a).setUserData(userData);
-        axle.createFixture(fd_b).setUserData(userData);
+        axle.createFixture(fd_a);
+        axle.createFixture(fd_b);
+        //axle.setUserData(userData);
         
         RevoluteJointDef rjd = new RevoluteJointDef();
         rjd.bodyA = chasis;
@@ -104,6 +112,8 @@ public final class Axle implements Drawable, Disposable {
         fd.localAnchorA.set(wheelB);
         
         frictionJointB = (FrictionJoint)box2d.createJoint(fd);
+        
+        for(int i=0; i<SMOKE_PRTS_COUNT; i++) smoke.add(new SmokeParticle());
     }
     
     public Axle(float spacing, float radius, float thickness, float theta, Body chasis, float chasisConnectionX, float chasisConnectionY, float maxTurn) {
@@ -111,6 +121,7 @@ public final class Axle implements Drawable, Disposable {
     }
     
     protected void update(boolean brake) {
+        smoke.forEach(SmokeParticle::update);
         drive();
         updateFriction(brake);
     }
@@ -142,6 +153,11 @@ public final class Axle implements Drawable, Disposable {
             wheelShapeB.rotateY(omega);
             g.shape(wheelShapeB);
         g.popMatrix();
+    }
+    
+    @Override
+    public void postRender(PGraphics g) {
+        smoke.forEach(sp -> sp.postRender(g));
     }
     
     private void drive() {
@@ -177,11 +193,11 @@ public final class Axle implements Drawable, Disposable {
         }
         
         if(brake) {
-            if(massTotal*vp < sf*0.25f*TIMESTEP) {
+            if(massTotal*vp < sf*0.40f*TIMESTEP) {
                 axle.applyForceToCenter(vP.mul(-massTotal*FPS));
             //axle.(vL.mul(-massTotal), new Vec2(0, 0), true);
             } else {
-                axle.applyForceToCenter(vP.mul(-0.25f*kf/vp));
+                axle.applyForceToCenter(vP.mul(-0.40f*kf/vp));
             }
         }
     }
@@ -214,6 +230,15 @@ public final class Axle implements Drawable, Disposable {
                 g.line(prevPosL.x-floorTransX, prevPosL.y-floorTransY, pixPosL.x-floorTransX, pixPosL.y-floorTransY);
             }
             
+            if(slideSpeed > 15f) {
+               Optional<SmokeParticle> toReuse = smoke.stream().filter(SmokeParticle::ended).findFirst();
+                if(toReuse.isPresent()) {
+                    SmokeParticle sp = toReuse.get();
+                    sp.set(axle.getPosition(), 1.4f, 14f, 0.25f, SMOKE_COLOR);
+                    //sp.applyImpulse(axle.getLinearVelocity().mul(-2.25f));
+                }
+            }
+            
             prevPosR.set(pixPosR);
             prevPosL.set(pixPosL);
         g.popStyle();
@@ -221,6 +246,7 @@ public final class Axle implements Drawable, Disposable {
     
     @Override
     public void dispose() {
+        axle.setUserData(null);
         dead = true;
         box2d.world.destroyBody(axle);
     }

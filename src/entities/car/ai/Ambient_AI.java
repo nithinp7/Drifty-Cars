@@ -3,7 +3,6 @@ package entities.car.ai;
 
 import ai.FrontObstacleDetector;
 import ai.PID;
-import ai.Path.PathSegment;
 import entities.car.AI_Car;
 import static java.lang.Math.random;
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import org.jbox2d.common.Vec2;
 import procGen.MapGen.MapCoord;
 import static procGen.MapGen.TYPE_ROAD;
 import static processing.core.PApplet.*;
-import processing.core.PGraphics;
 import static util.Constants.TYPE_BUILDING;
 
 /**
@@ -26,12 +24,13 @@ public final class Ambient_AI extends AI_Car {
     
     private MapCoord current = null, target = null;
     
-    private static final FrontObstacleDetector.AdditionalCheck ac = (fxtr, point, norm, frac) -> ((HashMap<String, Integer>)fxtr.getUserData()).get("TYPE")==TYPE_BUILDING? -1 : 1;
+    private static final FrontObstacleDetector.AdditionalCheck ac = (fxtr, point, norm, frac) -> ((HashMap<String, Integer>)fxtr.getBody().getUserData()).get("TYPE")==TYPE_BUILDING? -1 : 1;
     
     public Ambient_AI(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
-        super(x, y, theta, l, w, h, steeringControl);
+        super(x, y, theta, l, w, h, steeringControl, 0);
         //frontObstacleDetector.addCheck(ac);
         frontObstacleDetector.setScale(0.3f);
+        setDeleteDistance(300);
     }
     
     @Override
@@ -82,10 +81,5 @@ public final class Ambient_AI extends AI_Car {
         if(current!=null && target!=null) currentSegment = path.createTemporarySegment(pos, target.getPosition(), true);
         
         super.update();
-    }
-    
-    @Override
-    public final void renderAiCar(PGraphics g) {
-        renderDefCar(g);
     }
 }

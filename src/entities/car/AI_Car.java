@@ -2,15 +2,12 @@
 package entities.car;
 
 import ai.FrontObstacleDetector;
-import ai.FrontObstacleDetector.AdditionalCheck;
 import ai.PID;
 import ai.Path.PathSegment;
-import java.util.HashMap;
 import static main.Game.*;
 import org.jbox2d.common.Vec2;
 import static processing.core.PApplet.*;
 import processing.core.PGraphics;
-import static util.Constants.TYPE_BUILDING;
 
 /**
  *
@@ -31,10 +28,10 @@ public abstract class AI_Car extends Car {
     
     protected final FrontObstacleDetector frontObstacleDetector;
     
+    private float deleteDistance = 300;
     
-    
-    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
-        super(x, y, theta, l, w, h);
+    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, float dragConst, float densityMultiplier) {
+        super(x, y, theta, l, w, h, dragConst, densityMultiplier);
         this.steeringControl = steeringControl;
         throttle = 0.6f;
         
@@ -45,12 +42,16 @@ public abstract class AI_Car extends Car {
         frontObstacleDetector.update();
     }
     
+    protected void setDeleteDistance(float distance) {
+        deleteDistance = constrain(distance, 0, 300);
+    }
+    
     @Override 
     public void update() {
         
         Vec2 pos = chasis.getPosition();
         
-        if(getDistanceToCameraTarget(chasis.getPosition()) > 300) {
+        if(getDistanceToCameraTarget(chasis.getPosition()) > deleteDistance) {
             dispose();
             return;
         }
@@ -69,7 +70,7 @@ public abstract class AI_Car extends Car {
             if(speed < 1) lowSpeedCounter++;
             else lowSpeedCounter = 0;
             
-            if(lowSpeedCounter >= 155) {
+            if(lowSpeedCounter >= 96) {//155) {
                 reverseCounter = 0;
                 reverse = true;
             }
@@ -111,6 +112,10 @@ public abstract class AI_Car extends Car {
         super.update();
     }
     
+    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, float dragConst) {
+        this(x, y, theta, l, w, h, steeringControl, dragConst, 1);
+    }
+    
     protected abstract float getThrottle(float recommendedThrottle);
     
     @Override
@@ -120,7 +125,9 @@ public abstract class AI_Car extends Car {
         renderAiCar(g);
     }
     
-    protected void renderAiCar(PGraphics g) {}
+    protected void renderAiCar(PGraphics g) {
+        renderDefCar(g);
+    }
     
     @Override
     public void dispose() {

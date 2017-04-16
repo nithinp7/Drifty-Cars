@@ -30,6 +30,7 @@ public final class Init {
         initAI();
         initMap();
         initVehicles();
+        initSpawners();
         //initBuildings();
     }
     
@@ -63,10 +64,15 @@ public final class Init {
     }
     
     private static void initVehicles() {
-        Car car = new UserCar(0, 0, -PI/4, 6, 1.8f, 1.2f);
-        //Car car = new UserCar(0, 0, -PI/4, 6, 2.5f, 2);
+        //Car car = new UserCar(0, 0, -PI/4, 6, 1.8f, 1.2f);
+        Car car = new UserCar(0, 0, -PI/4, 2.8f, 0.7f, 0.4f);
         cars.add(car);
         cameraTarget = car.chasis;
+    }
+    
+    private static void initSpawners() {
+        spawners.add(pursuerSpawner);
+        spawners.add(ambientCarSpawner);
     }
     
     private static void initBuildings() {

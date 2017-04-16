@@ -9,6 +9,9 @@ import beads.Gain;
 import entities.building.Block;
 import entities.car.*;
 import entities.car.ai.Pursuer_AI;
+import entities.spawners.AmbientCarSpawner;
+import entities.spawners.PursuerSpawner;
+import entities.spawners.Spawner;
 import entities.surface.Floor;
 import static java.awt.event.KeyEvent.*;
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.common.Vec3;
 import org.jbox2d.dynamics.Body;
 import procGen.MapGen;
+import static processing.core.PConstants.SVG;
 import processing.core.PGraphics;
 import shiffman.box2d.*;
 import util.Skybox;
@@ -46,9 +50,14 @@ public final class Game {
     
     private static PGraphics floorLayer;
     
-    public static ArrayList<Car> cars = new ArrayList<>();
-    public static ArrayList<AI_Car> aiCars = new ArrayList<>();
-    public static ArrayList<Block> blocks = new ArrayList<>();
+    public static final ArrayList<Car> cars = new ArrayList<>();
+    public static final ArrayList<AI_Car> aiCars = new ArrayList<>();
+    public static final ArrayList<Block> blocks = new ArrayList<>();
+    
+    public static final ArrayList<Spawner> spawners = new ArrayList<>();
+    
+    public static final PursuerSpawner pursuerSpawner = new PursuerSpawner();
+    public static final AmbientCarSpawner ambientCarSpawner = new AmbientCarSpawner();
     
     protected static Body cameraTarget;
     private static final Vec2 cameraTranslation = new Vec2(0, 0);
@@ -61,9 +70,11 @@ public final class Game {
     public static final SkidSounds skidSounds = new SkidSounds();
     
     private static boolean tiltCamera = false;
-    private static int cameraZ = 480;
+    private static int cameraZ;
     
     private static boolean mute = true;
+    
+    private static long startTime;
     
     private static PGraphics g;
     
@@ -71,45 +82,53 @@ public final class Game {
         g = c.g;
         initAll();
         c.perspective(PI/3.0f, 1.f*WIDTH/HEIGHT, 3, 2000);
-        //skybox = getSkybox(GHOST_TOWN_SKYBOX);
-        skybox = getSkybox(FLATLAND_SKYBOX);
+        skybox = getSkybox(GHOST_TOWN_SKYBOX);
+        //skybox = getSkybox(FLATLAND_SKYBOX);
+        cameraZ = WIDTH/3;
         
         floorLayer = floor.getFloorLayer();
-        ac.out.setGain(mute? 0:8);
+        ac.out.setGain(mute? 0:0.8f);
+        startTime = System.currentTimeMillis();
+        tick();
+        
+        c.sphereDetail(5);
+        
         initialized = true;
     }
     
     protected static void tick() {
-        
         floorLayer.beginDraw();
         
         Vec2 cPos = cameraTarget.getPosition();
         audioListener.set(cPos.x, cPos.y, box2d.scalarPixelsToWorld(WIDTH*0.4f - cameraZ));
         
-        aiCars.forEach(ai -> ai.checkFront());
         updatePathDebug();
         updateAI_Debug();
         updateCamera();
         map.update();
-        cars.forEach(car -> car.update());
+            
+        spawners.forEach(Spawner::update);
+        aiCars.forEach(AI_Car::checkFront);
+        cars.forEach(Car::update);
+        
         box2d.step(TIMESTEP, 8, 3);
         
         floor.update();
         
         updateMute();
-        
         collisionSounds.update();
         carSounds.update();
         skidSounds.update();
+
+        aiCars.removeIf(Car::isDead);
+        cars.removeIf(Car::isDead);
         
-        aiCars.removeIf(car -> car.isDead());
-        cars.removeIf(car -> car.isDead());
-        blocks.removeIf(block -> block.isDead());
+        blocks.removeIf(Block::isDead);
     }
         
     protected static void render() {
         c.background(255, 0, 0);
-        cameraZ = constrain(cameraZ, -WIDTH/5, WIDTH*2/5);
+        cameraZ = constrain(cameraZ, -WIDTH/5, WIDTH*3/5);
         //cameraZ = 2*WIDTH/5;
 //        skybox.render(g);
         
@@ -135,12 +154,13 @@ public final class Game {
         c.directionalLight(220, 220, 220, -1, 1, -1);
         
         map.render();
+        
+        cars.forEach(car -> {
+            car.render(g);
+            car.updateTrackMarks();
+        });
 
-        cars.forEach(car -> car.render(g));
-
-        cars.forEach(car -> car.updateTrackMarks());
-
-        blocks.forEach(b -> b.render(g));
+        blocks.forEach(b -> b.render(g)); 
         
         c.fill(0);
         path.render();
@@ -149,18 +169,28 @@ public final class Game {
         floor.render();
         
         floorLayer.endDraw();
+        
+        synchronized(cars) { cars.forEach(car -> car.postRender(g)); }
+        
         c.popMatrix();
-        c.fill(0);
+        c.fill(0, 100);
         c.stroke(0);
         
         c.hint(DISABLE_DEPTH_TEST);
-        c.text(""+c.frameRate, 50, 50, 150, 150);
+        c.noLights();
+        float fps = c.frameRate;
+        String text = "FPS "+fps;
+        c.rect(50, 50, c.textWidth(text), 20);
+        if(fps>FPS*5/6) c.fill(0, 255, 0);
+        else if(fps>FPS*2/3) c.fill(220, 220, 0);
+        else c.fill(255, 0, 0);
+        c.text(text, 50, 50, 150, 150);
         c.hint(ENABLE_DEPTH_TEST);
         //System.out.println(c.frameRate);
     }
     
     private static void updateMute() {
-        if(consumeInput(VK_SPACE)) ac.out.setGain((mute=!mute)? 0 : 8);
+        if(consumeInput(VK_SPACE)) ac.out.setGain((mute=!mute)? 0:0.8f);
     }
     
     private static void updatePathDebug() {
@@ -186,14 +216,16 @@ public final class Game {
     private static void updateAI_Debug() { 
         Vec2 pos = coordPixelsToWorld(c.mouseX, c.mouseY);
         if(consumeInput(VK_M)) {
-            AI_Car aiCar = new Ambient_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, 0f));
+            //AI_Car aiCar = new Ambient_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, 0f));
+            AI_Car aiCar = new Ambient_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 2.5f, 0.6f, 0.4f, new PID(-0.1f, -1.3f, 0f));
             aiCars.add(aiCar);
             cars.add(aiCar);
             //cameraTarget = aiCar.chasis;
         }
         
         if(consumeInput(VK_N)) {
-            AI_Car aiCar = new Pursuer_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 2.5f, 2f, new PID(-0.1f, -1.3f, 0f));
+            //AI_Car aiCar = new Pursuer_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 2.5f, 2f, new PID(-0.1f, -0.7f, 0f));
+            AI_Car aiCar = new Pursuer_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 2.5f, 0.83f, 0.67f, new PID(-0.1f, -0.4f, 0f));
             aiCars.add(aiCar);
             cars.add(aiCar);
             //cameraTarget = aiCar.chasis;
@@ -279,5 +311,9 @@ public final class Game {
     
     public static float getCamTransZ() {
         return cameraZ;
+    }
+    
+    public static double getTimeElapsed() {
+        return (System.currentTimeMillis()-startTime)*0.001;
     }
 }

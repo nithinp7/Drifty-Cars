@@ -12,14 +12,13 @@ import processing.core.PGraphics;
 import static util.Constants.*;
 import util.audio.AudioRequest;
 import util.audio.sounds.SkidParam;
-import util.interfaces.Disposable;
-import util.interfaces.Drawable;
+import util.interfaces.*;
 
 /**
  *
  * @author Nithin
  */
-public abstract class Car implements Drawable, Disposable {
+public abstract class Car implements Drawable, Disposable, PostDraw {
     
     public float turn = 0,
                  throttle = 0,
@@ -36,13 +35,17 @@ public abstract class Car implements Drawable, Disposable {
     private final AudioRequest<Float> engineSound;
     private final AudioRequest<SkidParam> skidSound;
     
+    private final float dragConst;
+    
     private boolean dead = false;
     
-    public Car(float x, float y, float theta, float l, float w, float h) {
+    public Car(float x, float y, float theta, float l, float w, float h, float dragConst, float densityMultiplier) {
         
         this.l = l;
         this.w = w;
         this.h = h;
+        
+        this.dragConst = dragConst;
         
         l_pixels = box2d.scalarWorldToPixels(l);
         w_pixels = box2d.scalarWorldToPixels(w);
@@ -53,7 +56,7 @@ public abstract class Car implements Drawable, Disposable {
         
         FixtureDef fd = new FixtureDef();
         fd.shape = sd;
-        fd.density = 1000/(l*w*h);
+        fd.density = densityMultiplier*1000/(l*w*h);
         fd.friction = 3;
         fd.restitution = 0.5f;
         
@@ -61,12 +64,14 @@ public abstract class Car implements Drawable, Disposable {
         bd.type = BodyType.DYNAMIC;
         bd.position.set(x, y);
         bd.angle = theta;
+        bd.angularDamping = 2;
         
-        HashMap<String, Object> userData = new HashMap<>();
-        userData.put("TYPE", TYPE_CAR);
+        //HashMap<String, Object> userData = new HashMap<>();
+        //userData.put("TYPE", TYPE_CAR);
         
         chasis = box2d.createBody(bd);
-        chasis.createFixture(fd).setUserData(userData);
+        chasis.createFixture(fd);
+        //chasis.setUserData(userData);
         
         frontAxle = new Axle(1.1f*w, l/8, 0.5f, theta, chasis, l/4, 0, PI/6);
         rearAxle = new Axle(1.5f*w, l/7, 0.6f, theta, chasis, -l/4, 0, 0);
@@ -76,15 +81,20 @@ public abstract class Car implements Drawable, Disposable {
         engineSound = new AudioRequest<>(0, 0, 0, 1, Float.MAX_VALUE);
         carSounds.addRequest(engineSound);
         
-//        skidSound = createSound(CAR_SKID, true);
-//        skidSound.pitchGlide.setValue(1f);
-
         skidSound = new AudioRequest<>(0, 0, 0, 1, new SkidParam(Float.MAX_VALUE, false));
         skidSounds.addRequest(skidSound);
     }
     
-    public Car(Vec2 loc, float theta, float l, float w, float h) {
-        this(loc.x, loc.y, theta, l, w, h);
+    public Car(float x, float y, float theta, float l, float w, float h, float dragConst) {
+        this(x, y, theta, l, w, h, dragConst, 1);
+    }
+    
+    public Car(Vec2 loc, float theta, float l, float w, float h, float dragConst, float densityMultiplier) {
+        this(loc.x, loc.y, theta, l, w, h, dragConst, densityMultiplier);
+    }
+    
+    public Car(Vec2 loc, float theta, float l, float w, float h, float dragConst) {
+        this(loc.x, loc.y, theta, l, w, h, dragConst, 1);
     }
     
     public void update() {
@@ -96,6 +106,7 @@ public abstract class Car implements Drawable, Disposable {
     
     private void drive() {
         //throttle = constrain(throttle, 0, 2.6f);
+        //throttle = constrain(throttle, 0, 1);
         if(reverse) throttle = 0.2f;
         float speed = getForwardSpeed();
         Vec2 pos = chasis.getPosition();
@@ -103,7 +114,7 @@ public abstract class Car implements Drawable, Disposable {
         updateSounds(pos, speed);
         
         float theta = frontAxle.axle.getAngle();
-        frontAxle.axle.applyForceToCenter(new Vec2(cos(theta), sin(theta)).mul(72000 * throttle * (reverse ? -1 : 1)));
+        frontAxle.axle.applyForceToCenter(new Vec2(cos(theta), sin(theta)).mul(72000*throttle*(reverse? -1 : 1) - (reverse? 0 : dragConst*pow(getForwardSpeed(), 2))));
     }
     
     private void updateSounds(Vec2 pos, float speed) {
@@ -169,6 +180,7 @@ public abstract class Car implements Drawable, Disposable {
     
     @Override
     public void dispose() {
+        chasis.setUserData(null);
         frontAxle.dispose();
         rearAxle.dispose();
         box2d.world.destroyBody(chasis);
@@ -180,5 +192,11 @@ public abstract class Car implements Drawable, Disposable {
     @Override
     public final boolean isDead() {
         return dead;
+    }
+    
+    @Override
+    public void postRender(PGraphics g) {
+        frontAxle.postRender(g);
+        rearAxle.postRender(g);
     }
 }

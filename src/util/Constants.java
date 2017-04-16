@@ -6,6 +6,7 @@ import beads.Glide;
 import beads.Sample;
 import beads.SampleManager;
 import beads.SamplePlayer;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
 import static main.Game.ac;
@@ -40,8 +41,10 @@ public final class Constants {
             EPSILON = 0.001f,
             EPSILON_SQUARED = EPSILON*EPSILON,
 
-            RUBBER_ASPHALT_KF = 6f,
-            RUBBER_ASPHALT_SF = 8f;
+            RUBBER_ASPHALT_KF = 5f,
+            RUBBER_ASPHALT_SF = 7f,
+            
+            MAX_CAR_THRUST = 72000;
     
     public static final String
             AI_PATH_URL = "./res/cache/ai_path.json";
@@ -86,6 +89,9 @@ public final class Constants {
         "./res/sounds/carSkid.wav",
         "./res/sounds/carCrash.wav"
     };
+    
+    public static final Color
+            SMOKE_COLOR = new Color(70, 65, 55, 180);//new Color(210, 235, 200, 180);
     
     public static final Comparator<Float> distComparator = (a, b) -> a<b? -1 : Math.abs(a-b)<0.00001f? 0 : 1;
     public static final Comparator<AudioRequest<Float>> distSoundComparator = (a, b) -> distComparator.compare(a.comparisonValue, b.comparisonValue);
