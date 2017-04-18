@@ -15,20 +15,26 @@ import entities.spawners.Spawner;
 import entities.surface.Floor;
 import static java.awt.event.KeyEvent.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import static main.Main.*;
 import static util.Constants.*;
 import static main.Init.*;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.common.Vec3;
 import org.jbox2d.dynamics.Body;
+import particles.explosions.Explosion;
 import procGen.MapGen;
-import static processing.core.PConstants.SVG;
+import static processing.core.PConstants.PI;
 import processing.core.PGraphics;
 import shiffman.box2d.*;
 import util.Skybox;
 import util.audio.sounds.CarSounds;
 import util.audio.sounds.CollisionSounds;
+import util.audio.sounds.ExplosionSounds;
+import util.audio.sounds.SirenSounds;
 import util.audio.sounds.SkidSounds;
+import util.audio.sounds.Sound;
 import static util.input.Input.*;
 
 /**
@@ -50,9 +56,24 @@ public final class Game {
     
     private static PGraphics floorLayer;
     
+    protected static UserCar user;
+    public static CarRemnants userRemnants;
+    
+    public static final CollisionSounds collisionSounds = new CollisionSounds();
+    public static final CarSounds carSounds = new CarSounds();
+    public static final SkidSounds skidSounds = new SkidSounds();
+    public static final SirenSounds sirenSounds = new SirenSounds();
+    public static final ExplosionSounds explosionSounds = new ExplosionSounds();
+    
+    public static final List<Sound> sounds = Arrays.asList(collisionSounds, carSounds, skidSounds, sirenSounds, explosionSounds);
+    
     public static final ArrayList<Car> cars = new ArrayList<>();
     public static final ArrayList<AI_Car> aiCars = new ArrayList<>();
     public static final ArrayList<Block> blocks = new ArrayList<>();
+    
+    public static final ArrayList<CarRemnants> carRemnants = new ArrayList<>();
+    
+    public static final ArrayList<Explosion> explosions = new ArrayList<>();
     
     public static final ArrayList<Spawner> spawners = new ArrayList<>();
     
@@ -65,14 +86,10 @@ public final class Game {
     
     private static final Vec3 audioListener = new Vec3(0, 0, 0);
     
-    public static final CollisionSounds collisionSounds = new CollisionSounds();
-    public static final CarSounds carSounds = new CarSounds();
-    public static final SkidSounds skidSounds = new SkidSounds();
-    
     private static boolean tiltCamera = false;
     private static int cameraZ;
     
-    private static boolean mute = true;
+    private static boolean mute = false;
     
     private static long startTime;
     
@@ -89,7 +106,6 @@ public final class Game {
         floorLayer = floor.getFloorLayer();
         ac.out.setGain(mute? 0:0.8f);
         startTime = System.currentTimeMillis();
-        tick();
         
         c.sphereDetail(5);
         
@@ -111,19 +127,26 @@ public final class Game {
         aiCars.forEach(AI_Car::checkFront);
         cars.forEach(Car::update);
         
+        carRemnants.forEach(CarRemnants::update);
+        
         box2d.step(TIMESTEP, 8, 3);
         
         floor.update();
         
         updateMute();
-        collisionSounds.update();
-        carSounds.update();
-        skidSounds.update();
+        sounds.forEach(Sound::update);
 
         aiCars.removeIf(Car::isDead);
         cars.removeIf(Car::isDead);
         
         blocks.removeIf(Block::isDead);
+        
+        explosions.forEach(Explosion::update);
+        explosions.removeIf(Explosion::isDead);
+        
+        carRemnants.removeIf(CarRemnants::isDead);
+        
+        if(user.isDead() && userRemnants.isDead()) initUserVehicle();
     }
         
     protected static void render() {
@@ -140,7 +163,7 @@ public final class Game {
         if(tiltCamera) c.rotateX(PI/2.3f);
         else c.rotateX(PI/6f);
         
-        c.rotateZ(cameraAngle);
+        c.rotateZ(-cameraAngle);
         skybox.render(g);
         
         c.translate(-WIDTH/2, -HEIGHT/2, -cameraZ);
@@ -162,6 +185,8 @@ public final class Game {
 
         blocks.forEach(b -> b.render(g)); 
         
+        carRemnants.forEach(cr -> cr.render(g));
+        
         c.fill(0);
         path.render();
         c.stroke(0);
@@ -170,7 +195,9 @@ public final class Game {
         
         floorLayer.endDraw();
         
-        synchronized(cars) { cars.forEach(car -> car.postRender(g)); }
+        cars.forEach(car -> car.postRender(g));
+        
+        explosions.forEach(exp -> exp.postRender(g));
         
         c.popMatrix();
         c.fill(0, 100);
@@ -180,11 +207,13 @@ public final class Game {
         c.noLights();
         float fps = c.frameRate;
         String text = "FPS "+fps;
-        c.rect(50, 50, c.textWidth(text), 20);
+        c.rect(50, 50, c.textWidth(text), 50);
         if(fps>FPS*5/6) c.fill(0, 255, 0);
         else if(fps>FPS*2/3) c.fill(220, 220, 0);
         else c.fill(255, 0, 0);
         c.text(text, 50, 50, 150, 150);
+        c.fill(255);
+        c.text("Health: "+user.getHealth(), 50, 70, 150, 150);
         c.hint(ENABLE_DEPTH_TEST);
         //System.out.println(c.frameRate);
     }
@@ -238,8 +267,8 @@ public final class Game {
     }
     
     private static void updateCamera() {
-        Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition());
-        cameraAngle += (cameraTarget.getAngle()-PI/2 - cameraAngle)/20.;
+        Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition()), targetDir = cameraTarget.getWorldVector(new Vec2(0, -1)), camDir = new Vec2(cos(cameraAngle), sin(cameraAngle));
+        cameraAngle -= atan2(targetDir.x*camDir.y + targetDir.y*camDir.x, targetDir.x*camDir.x - targetDir.y*camDir.y)/40f;
         Vec2 newCamTrans = new Vec2(pos.x-WIDTH/2, pos.y-HEIGHT/2), deltaCamTrans = newCamTrans.sub(cameraTranslation);
         cameraTranslation.set(newCamTrans);
         if(consumeInput(VK_Z)) cameraZ += 60;
@@ -248,7 +277,7 @@ public final class Game {
     }
     
     public static Vec2 coordPixelsToWorld(Vec2 pixels) {
-        float cos = cos(cameraAngle), sin = -sin(cameraAngle);
+        float cos = cos(cameraAngle), sin = sin(cameraAngle);
         
         Vec2 res = new Vec2(pixels.x-WIDTH/2, pixels.y-HEIGHT/2);
         res.set(res.x*cos - res.y*sin + WIDTH/2, res.x*sin + res.y*cos + HEIGHT/2);
@@ -279,6 +308,14 @@ public final class Game {
     
     public static float getDistanceToAudioListener(float cx, float cy, float cz) {
         return getDistanceToAudioListener(new Vec3(cx, cy, cz));
+    }
+    
+    public static float getDistanceToAudioListener(float cx, float cy) {
+        return getDistanceToAudioListener(cx, cy, 0);
+    }
+    
+    public static float getDistanceToAudioListener(Vec2 coord) {
+        return getDistanceToAudioListener(coord.x, coord.y, 0);
     }
     
     public static float getDistanceToCameraTarget(Vec2 pos) {

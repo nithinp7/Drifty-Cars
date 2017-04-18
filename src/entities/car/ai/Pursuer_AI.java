@@ -5,15 +5,15 @@ import ai.PID;
 import entities.car.AI_Car;
 import java.awt.Color;
 import static main.Game.*;
-import static main.Main.c;
 import org.jbox2d.common.Vec2;
 import particles.LightParticle;
 import static processing.core.PApplet.constrain;
-import static processing.core.PConstants.*;
+import static processing.core.PApplet.norm;
+import static processing.core.PApplet.pow;
 import processing.core.PGraphics;
-import processing.core.PShape;
 import static util.Constants.FPS;
-import static util.geometry.Shapes.createBox;
+import static util.Constants.MODEL_POLICE_CAR;
+import util.audio.AudioRequest;
 
 /**
  *
@@ -21,81 +21,22 @@ import static util.geometry.Shapes.createBox;
  */
 public final class Pursuer_AI extends AI_Car {
     
-    private final PShape copCar;
-    
     private final LightParticle redLight, blueLight;
+    
+    private final AudioRequest<Float> sirenSound;
     
     private int lightCounter = 0;
 
     public Pursuer_AI(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
-        super(x, y, theta, l, w, h, steeringControl, 0, 2);
-        
+        super(x, y, theta, l, w, h, steeringControl, 0, 2, MODEL_POLICE_CAR);
+        setImpactResistance(0.15f);
         setDeleteDistance(110);
         
-        copCar = c.createShape(GROUP);
-        
-        copCar.translate(0, 0, h_pixels/2);
-        PShape body = c.createShape();
-  
-        body.translate(0, 0, 0);
-        body.beginShape(QUADS);
-
-        body.fill(20);
-        body.noStroke();
-
-        createBox(body, l_pixels, w_pixels, h_pixels);
-
-        body.endShape();
-
-        copCar.addChild(body);
-
-        PShape body2 = c.createShape();
-
-        body2.translate(-0.1f*l_pixels, 0, 0.8f*h_pixels);
-        body2.beginShape(QUADS);
-
-        body2.fill(170);
-        body2.noStroke();
-
-        createBox(body2, 0.5f*l_pixels, 0.85f*w_pixels, 0.8f*h_pixels);
-
-        body2.endShape();
-
-        copCar.addChild(body2);
-
-        PShape body3 = c.createShape();
-
         redLight = new LightParticle(chasis, 0, -0.4f*w, h, 3.5f, new Color(255, 0, 0, 100));
-                
-        body3.translate(0, 0.2f*w_pixels, h_pixels);
-        body3.beginShape(QUADS);
-
-        body3.emissive(255, 0, 0);
-        body3.fill(255, 0, 0);
-        body3.noStroke();
-
-        createBox(body3, 0.1f*l_pixels, 0.4f*w_pixels, 0.6f*h_pixels);
-
-        body3.endShape();
-
-        copCar.addChild(body3);
-
-        PShape body4 = c.createShape();
-        
         blueLight = new LightParticle(chasis, 0, 0.4f*w, h, 3.5f, new Color(0, 0, 255, 100));
-
-        body4.translate(0, -0.2f*w_pixels, h_pixels);
-        body4.beginShape(QUADS);
-
-        body4.emissive(0, 0, 255);
-        body4.fill(0, 0, 255);
-        body4.noStroke();
-
-        createBox(body4, 0.1f*l_pixels, 0.4f*w_pixels, 0.6f*h_pixels);
-
-        body4.endShape();
-
-        copCar.addChild(body4);
+        
+        sirenSound = new AudioRequest<>(0, 0, 1, 1, Float.MAX_VALUE);
+        sirenSounds.addRequest(sirenSound);
     }
 
     @Override
@@ -105,7 +46,7 @@ public final class Pursuer_AI extends AI_Car {
     
     @Override
     public void update() {
-        brake = getSlideSpeed() > 4;
+        //brake = getSlideSpeed() > 4;
         
         redLight.update();
         blueLight.update();
@@ -121,17 +62,17 @@ public final class Pursuer_AI extends AI_Car {
         
         currentSegment = path.createTemporarySegment(pos, target, true);
         
+        updateSound();
+        
         super.update();
     }
     
-    @Override
-    protected void renderAiCar(PGraphics g) {
-        Vec2 pos = box2d.coordWorldToPixels(chasis.getPosition());
-        g.pushMatrix();
-            g.translate(pos.x, pos.y);
-            g.rotate(-chasis.getAngle());
-            g.shape(copCar);
-        g.popMatrix();
+    private void updateSound() {
+        float dist = getDistanceToAudioListener(chasis.getPosition()),
+              vol = dist > 200 ? 0 : 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.25f);
+        
+        sirenSound.setGainTime(40);
+        sirenSound.setGainValue(vol*0.15f);
     }
     
     @Override
@@ -148,5 +89,11 @@ public final class Pursuer_AI extends AI_Car {
         }
         
         lightCounter++;
+    }
+    
+    @Override
+    public void dispose() {
+        sirenSounds.removeRequest(sirenSound);
+        super.dispose();
     }
 }

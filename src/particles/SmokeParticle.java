@@ -22,13 +22,15 @@ public class SmokeParticle extends Particle {
     private float radiusIncrRate, fadeTime;
     private Color color;
     
+    private float alphaMultiplier;
+    
     private int fadeCounter = 0;
             
     public SmokeParticle() {
         super(0, 0, 0, 0);
     }
     
-    public void set(float x, float y, float z, float radius, float radiusIncrRate, float fadeTime, Color color) {
+    public void set(float x, float y, float z, float radius, float radiusIncrRate, float fadeTime, Color color, float alphaMultiplier) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -37,20 +39,22 @@ public class SmokeParticle extends Particle {
         this.fadeTime = fadeTime;
         this.color = color;
         
+        this.alphaMultiplier = alphaMultiplier;
+        
         fadeCounter = 0;
         ended = false;
     }
     
-    public void set(Vec3 pos, float radius, float radiusIncrRate, float fadeTime, Color color) {
-        set(pos.x, pos.y, pos.z, radius, radiusIncrRate, fadeTime, color);
+    public void set(float x, float y, float z, float radius, float radiusIncrRate, float fadeTime, Color color) {
+        set(x, y, z, radius, radiusIncrRate, fadeTime, color, 1);
     }
     
     public void set(float x, float y, float radius, float radiusIncrRate, float fadeTime, Color color) {
         set(x, y, 0, radius, radiusIncrRate, fadeTime, color);
     }
     
-    public void set(Vec2 pos, float radius, float radiusIncrRate, float fadeTime, Color color) {
-        set(pos.x, pos.y, 0, radius, radiusIncrRate, fadeTime, color);
+    public void set(float x, float y, float radius, float radiusIncrRate, float fadeTime, Color color, float alphaMultiplier) {
+        set(x, y, 0, radius, radiusIncrRate, fadeTime, color, alphaMultiplier);
     }
     
     @Override
@@ -66,7 +70,7 @@ public class SmokeParticle extends Particle {
         if(ended) return;
         Vec2 pixPos = box2d.coordWorldToPixels(x, y);
         float radius_pix = box2d.scalarWorldToPixels(radius);
-        int currentAlpha = (int)(color.getAlpha()*(1-fadeCounter*TIMESTEP/fadeTime));
+        int currentAlpha = (int)(color.getAlpha()*(1-fadeCounter*TIMESTEP/fadeTime)*alphaMultiplier);
         g.pushMatrix();
         g.pushStyle();
             g.noStroke();

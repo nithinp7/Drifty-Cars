@@ -17,17 +17,17 @@ import static processing.core.PApplet.constrain;
 public class PursuerSpawner extends Spawner {
 
     public PursuerSpawner() {
-        super(55, 90, 8);
+        super(55, 90, 3);
     }
     
     @Override
     protected AI_Car createCar(Vec2 pos) {
         Vec2 targ = getCameraTarget();
-        return new Pursuer_AI(pos.x, pos.y, atan2(targ.y-pos.y, targ.x-pos.x), 3.5f, 1.23f, 0.67f, new PID(-0.2f, -1.4f, 0f));
+        return new Pursuer_AI(pos.x, pos.y, atan2(targ.y-pos.y, targ.x-pos.x), 3.5f, 1.23f, 0.67f, new PID(-1.2f, -1.8f, 0f));
     }
     
     @Override
     protected void updateSubClass() {
-        setTargetNumberOfCars(constrain(8+(int)(getTimeElapsed()/30), 0, 20));
+        setTargetNumberOfCars(constrain(3+(int)(getTimeElapsed()/10), 0, 12));
     }
 }

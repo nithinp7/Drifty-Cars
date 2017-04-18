@@ -11,10 +11,10 @@ import shiffman.box2d.Box2DProcessing;
 import ai.Path;
 import beads.AudioContext;
 import beads.Gain;
-import entities.car.Car;
 import entities.surface.Floor;
 import procGen.MapGen;
 import static util.Constants.*;
+import util.audio.sounds.Sound;
 
 /**
  *
@@ -29,19 +29,20 @@ public final class Init {
         initPhysics();
         initAI();
         initMap();
-        initVehicles();
+        initUserVehicle();
         initSpawners();
         //initBuildings();
     }
     
     private static void initSounds() {
-        
         ac = new AudioContext();
         gain = new Gain(ac, 2, 0.2f);
         ac.out.addInput(gain);
         ac.start();
         
         initSamples();
+        
+        
     }
     
     private static void initAI() {
@@ -52,9 +53,7 @@ public final class Init {
         box2d = new Box2DProcessing(c);
         box2d.setScaleFactor(2);
         box2d.createWorld(new Vec2(0, 0));
-        collisionSounds.init();
-        carSounds.init();
-        skidSounds.init();
+        sounds.forEach(Sound::init);
         box2d.world.setContactListener(collisionSounds);
     }
     
@@ -63,11 +62,11 @@ public final class Init {
         map = new MapGen(1600, 1600, 8);
     }
     
-    private static void initVehicles() {
+    protected static void initUserVehicle() {
         //Car car = new UserCar(0, 0, -PI/4, 6, 1.8f, 1.2f);
-        Car car = new UserCar(0, 0, -PI/4, 2.8f, 0.7f, 0.4f);
-        cars.add(car);
-        cameraTarget = car.chasis;
+        user = new UserCar(0, 0, -PI/4, 2.8f, 0.7f, 0.4f);
+        cars.add(user);
+        cameraTarget = user.chasis;
     }
     
     private static void initSpawners() {

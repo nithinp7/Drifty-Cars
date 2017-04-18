@@ -5,6 +5,7 @@ import beads.Bead;
 import beads.Gain;
 import beads.Glide;
 import beads.SamplePlayer;
+import static processing.core.PApplet.constrain;
 
 /**
  *
@@ -18,6 +19,8 @@ public final class SampleControls {
     private final SamplePlayer player;
     
     private boolean ended = false;
+    
+    private float start = 0, end = 1;
     
     public SampleControls(Gain vol, Glide gGlide, Glide pGlide, SamplePlayer sp) {
         volume = vol;
@@ -33,6 +36,11 @@ public final class SampleControls {
         });
     }
     
+    public void setLoopBounds(float start, float end) {
+        this.start = constrain(start, 0, 1);
+        this.end = constrain(end, 0, 1);
+    }
+    
     public void stop() {
         
     }
@@ -46,6 +54,7 @@ public final class SampleControls {
         player.reset();
         player.start();
         player.pause(false);
+        player.setLoopPointsFraction(start, end);
     }
     
     public void setKillOnEnd(boolean kill) {

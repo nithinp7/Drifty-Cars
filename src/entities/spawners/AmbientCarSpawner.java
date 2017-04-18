@@ -20,5 +20,4 @@ public class AmbientCarSpawner extends Spawner {
     protected AI_Car createCar(Vec2 pos) {
         return new Ambient_AI(pos.x, pos.y, 0, 2.8f, 0.7f, 0.4f, new PID(-0.1f, -1.3f, 0f));
     }
-    
 }

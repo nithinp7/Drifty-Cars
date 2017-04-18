@@ -19,17 +19,18 @@ import static util.Constants.*;
  *
  * @author Nithin
  */
-public final class CollisionSounds implements ContactListener {
+public final class CollisionSounds extends Sound<Float> implements ContactListener {
     
-    private SoundManager<Float> sm;
     private final ArrayList<CollisionEntry> collisions = new ArrayList<>();
     
-    public void init() {
-        sm = new SoundManager<>(CAR_CRASH, 15, false, distSoundComparator);
+    @Override
+    public SoundManager<Float> createSoundManager() {
+        return new SoundManager<>(CAR_CRASH, 8, false, distSoundComparator);
     }
     
+    @Override
     public void update() {
-        sm.update();
+        super.update();
         
         long time = System.currentTimeMillis();
         collisions.removeIf(ce -> abs(time-ce.timeStamp) > 3000);
@@ -77,7 +78,7 @@ public final class CollisionSounds implements ContactListener {
         float impNorm = 2*pow(norm(constrain(largestImpulse, 0, 4500), 300, 4500), 4);
         
         vol *= impNorm;
-        sm.addRequest(new AudioRequest<>(vol*0.005f, 0, 1, 0, dist));
+        addRequest(new AudioRequest<>(vol*0.005f, 0, 1, 0, dist));
     }
     
     private class CollisionEntry {

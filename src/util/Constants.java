@@ -31,7 +31,13 @@ public final class Constants {
             FPS = 30,
             
             TYPE_CAR = 0,
-            TYPE_BUILDING = 1;
+            TYPE_BUILDING = 1,
+            
+            MODEL_POLICE_CAR = 0,
+            MODEL_POLICE_JEEP = 1,
+            MODEL_CIV_CAR = 2,
+            MODEL_CIV_JEEP = 3,
+            MODEL_CIV_PICKUP = 4;
     
     public static final float
             TIMESTEP = 1.f/FPS,
@@ -44,7 +50,8 @@ public final class Constants {
             RUBBER_ASPHALT_KF = 5f,
             RUBBER_ASPHALT_SF = 7f,
             
-            MAX_CAR_THRUST = 72000;
+            MAX_CAR_THRUST = 72000,
+            MAX_EXPLOSION_IMPULSE = 1000000000;
     
     public static final String
             AI_PATH_URL = "./res/cache/ai_path.json";
@@ -82,16 +89,22 @@ public final class Constants {
     public static final int
             CAR_ENGINE = 0,
             CAR_SKID = 1,
-            CAR_CRASH = 2;
+            CAR_CRASH = 2,
+            POLICE_SIREN = 3,
+            EXPLOSION = 4;
     
     private static final String[] SOUND_URLS = {
         "./res/sounds/carEngine.wav",
         "./res/sounds/carSkid.wav",
-        "./res/sounds/carCrash.wav"
+        "./res/sounds/carCrash.wav",
+        "./res/sounds/policeSiren.wav",
+        "./res/sounds/explosion.aif"
     };
     
     public static final Color
-            SMOKE_COLOR = new Color(70, 65, 55, 180);//new Color(210, 235, 200, 180);
+            SMOKE_COLOR = new Color(70, 65, 55, 180),//new Color(210, 235, 200, 180);
+            DAMAGE_SMOKE_COLOR = new Color(8, 5, 8, 230),
+            EXPLOSION_FIRE_COLOR = new Color(240, 210, 50, 230);
     
     public static final Comparator<Float> distComparator = (a, b) -> a<b? -1 : Math.abs(a-b)<0.00001f? 0 : 1;
     public static final Comparator<AudioRequest<Float>> distSoundComparator = (a, b) -> distComparator.compare(a.comparisonValue, b.comparisonValue);

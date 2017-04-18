@@ -2,6 +2,7 @@
 package util.audio;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import static util.Constants.createSound;
 
@@ -29,7 +30,12 @@ public final class SoundManager<T> {
         this.loop = loop;
     }
     
+    public void setBounds(float start, float end) {
+        sampleControls.forEach(sc -> sc.setLoopBounds(start, end));
+    }
+    
     public void update() {
+        requests.removeAll(Collections.singleton(null));
         requests.sort(priorityComparator);
         for(int i=0; i<requests.size(); i++) {
             if(i<tracks) {

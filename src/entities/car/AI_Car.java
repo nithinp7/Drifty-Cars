@@ -30,12 +30,16 @@ public abstract class AI_Car extends Car {
     
     private float deleteDistance = 300;
     
-    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, float dragConst, float densityMultiplier) {
-        super(x, y, theta, l, w, h, dragConst, densityMultiplier);
+    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, float dragConst, float densityMultiplier, int modelType) {
+        super(x, y, theta, l, w, h, dragConst, densityMultiplier, modelType);
         this.steeringControl = steeringControl;
         throttle = 0.6f;
         
         frontObstacleDetector = new FrontObstacleDetector(chasis);
+    }
+    
+    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, float dragConst, int modelType) {
+        this(x, y, theta, l, w, h, steeringControl, dragConst, 1, modelType);
     }
     
     public final void checkFront() {
@@ -112,22 +116,16 @@ public abstract class AI_Car extends Car {
         super.update();
     }
     
-    public AI_Car(float x, float y, float theta, float l, float w, float h, PID steeringControl, float dragConst) {
-        this(x, y, theta, l, w, h, steeringControl, dragConst, 1);
-    }
-    
     protected abstract float getThrottle(float recommendedThrottle);
     
     @Override
-    protected final void renderCar(PGraphics g) {
+    protected final void renderAdditional(PGraphics g) {
         //frontObstacleDetector.render();
         frontObstacleDetector.clear();
-        renderAiCar(g);
+        renderAiAdditional(g);
     }
     
-    protected void renderAiCar(PGraphics g) {
-        renderDefCar(g);
-    }
+    protected void renderAiAdditional(PGraphics g) {}
     
     @Override
     public void dispose() {

@@ -1,17 +1,17 @@
-
+ 
 package util.audio.sounds;
 
-import util.audio.SoundManager;
 import static util.Constants.*;
+import util.audio.SoundManager;
 
 /**
  *
  * @author nithin
  */
-public final class CarSounds extends Sound<Float> {
+public final class SirenSounds extends Sound<Float> {
     
     @Override
     public SoundManager<Float> createSoundManager() {
-        return new SoundManager<>(CAR_ENGINE, 8, true, distSoundComparator);
+        return new SoundManager<>(POLICE_SIREN, 5, true, distSoundComparator);
     }
 }

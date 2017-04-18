@@ -2,7 +2,6 @@
 package entities.car;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Optional;
 import static main.Main.*;
 import static main.Game.*;
@@ -31,7 +30,8 @@ public final class Axle implements Drawable, Disposable, PostDraw {
     public final Vec2 prevPosL = new Vec2(0, 0), prevPosR = new Vec2(0, 0);
     
     private final ArrayList<SmokeParticle> smoke = new ArrayList<>();
-    private static final int SMOKE_PRTS_COUNT = 5;
+    private static final float SMOKE_FADE_TIME = 0.5f;
+    private static final int SMOKE_PRTS_COUNT = 5, ANIM_SPACING = (int)(SMOKE_FADE_TIME*FPS/SMOKE_PRTS_COUNT);
     
     protected final Body axle, chasis;
     protected final RevoluteJoint chasisConnector; 
@@ -43,6 +43,8 @@ public final class Axle implements Drawable, Disposable, PostDraw {
     final float spacing, spacing_pixels, radius, radius_pixels, thickness, thickness_pixels;
     
     private float slideSpeed = 0, forwardSpeed = 0;
+    
+    private int smokeAnimCounter = 0;
     
     private final PShape wheelShapeA, wheelShapeB;
     private boolean dead = false;
@@ -230,17 +232,16 @@ public final class Axle implements Drawable, Disposable, PostDraw {
                 g.line(prevPosL.x-floorTransX, prevPosL.y-floorTransY, pixPosL.x-floorTransX, pixPosL.y-floorTransY);
             }
             
-            if(slideSpeed > 15f) {
-               Optional<SmokeParticle> toReuse = smoke.stream().filter(SmokeParticle::ended).findFirst();
-                if(toReuse.isPresent()) {
-                    SmokeParticle sp = toReuse.get();
-                    sp.set(axle.getPosition(), 1.4f, 14f, 0.25f, SMOKE_COLOR);
-                    //sp.applyImpulse(axle.getLinearVelocity().mul(-2.25f));
-                }
-            }
-            
             prevPosR.set(pixPosR);
             prevPosL.set(pixPosL);
+            
+            if(smokeAnimCounter++%ANIM_SPACING==0 && slideSpeed>15f) 
+                smoke
+                        .stream()
+                        .filter(SmokeParticle::ended)
+                        .findAny()
+                        .ifPresent(sp -> sp.set(pos.x, pos.y, 1.4f, 14f, SMOKE_FADE_TIME, SMOKE_COLOR));
+            
         g.popStyle();
     }
     
