@@ -12,6 +12,6 @@ public final class CarSounds extends Sound<Float> {
     
     @Override
     public SoundManager<Float> createSoundManager() {
-        return new SoundManager<>(CAR_ENGINE, 8, true, distSoundComparator);
+        return new SoundManager<>(CAR_ENGINE, 8, true, distSoundComparator, Float.MAX_VALUE);
     }
 }

@@ -46,7 +46,7 @@ public final class Floor {
         floorLayer.rectMode(CENTER);
         
         //floorLayer.fill(200, 220, 240, 255); //cyber
-        floorLayer.fill(140, 130, 110, 255); //ghost town
+        floorLayer.fill(GHOST_TOWN_FLOOR_COLOR.getRGB(), 255); //ghost town
         floorLayer.noStroke();
         
         //floorLayer.rect(w/2, h/2, w, h);

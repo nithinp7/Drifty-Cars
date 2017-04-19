@@ -2,16 +2,16 @@
 package util.audio;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import static util.Constants.createSound;
+import util.interfaces.Restartable;
 
 /**
  *
  * @author nithin
  * @param <T> comparison type
  */
-public final class SoundManager<T> {
+public final class SoundManager<T> implements Restartable {
     
     private final int tracks, type;
     private final boolean loop;
@@ -20,10 +20,20 @@ public final class SoundManager<T> {
     private final ArrayList<AudioRequest<T>> requests = new ArrayList<>();
     private final Comparator<AudioRequest<T>> priorityComparator;
     
-    private final AudioRequest<T> clearReq = new AudioRequest<>(0, 1, 0, 1, null);
+    private final AudioRequest<T> clearReq;// = new AudioRequest<>(0, 1, 0, 1, null);
     
-    public SoundManager(int type, int tracks, boolean loop, Comparator<AudioRequest<T>> priorityComparator) {
-        for(int i=0; i<tracks; i++) sampleControls.add(createSound(type, loop));
+    private final T max;
+    
+    public SoundManager(int type, int tracks, boolean loop, Comparator<AudioRequest<T>> priorityComparator, T max) {
+        clearReq = new AudioRequest<>(0, 1, 0, 1, max);
+        
+        this.max = max;
+        
+        for(int i=0; i<tracks; i++) {
+            SampleControls sc = createSound(type, loop);
+            clearReq.playSound(sc, max);
+            sampleControls.add(sc);
+        }
         this.priorityComparator = priorityComparator;
         this.tracks = tracks;
         this.type = type;
@@ -35,7 +45,7 @@ public final class SoundManager<T> {
     }
     
     public void update() {
-        requests.removeAll(Collections.singleton(null));
+        //requests.removeAll(Collections.singleton(null));
         requests.sort(priorityComparator);
         for(int i=0; i<requests.size(); i++) {
             if(i<tracks) {
@@ -54,8 +64,15 @@ public final class SoundManager<T> {
     }
     
     public void removeRequest(AudioRequest<T> request) {
+        //TODO: Find actual solution
         int indexOf = requests.indexOf(request);
-        if(indexOf<tracks) clearReq.playSound(sampleControls.get(indexOf), null);
+        if(indexOf>-1&&indexOf<tracks) clearReq.updateSound(sampleControls.get(indexOf), max);
         requests.remove(request);
+    }
+    
+    @Override
+    public void restart() {
+        requests.clear();
+        sampleControls.forEach(sc -> clearReq.playSound(sc, max));
     }
 }

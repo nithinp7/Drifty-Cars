@@ -12,6 +12,6 @@ public class SkidSounds extends Sound<SkidParam> {
     
     @Override
     public SoundManager<SkidParam> createSoundManager() {
-        return new SoundManager<>(CAR_SKID, 12, true, skidSoundComparator);
+        return new SoundManager<>(CAR_SKID, 12, true, skidSoundComparator, new SkidParam(Float.MAX_VALUE, false));
     }
 }

@@ -1,8 +1,7 @@
 
 package procGen;
 
-import ai.Path.PathNode;
-import entities.building.Block;
+import entities.building.Building;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
@@ -11,12 +10,13 @@ import static main.Main.c;
 import org.jbox2d.common.Vec2;
 import static processing.core.PApplet.*;
 import static util.Constants.*;
+import util.interfaces.Restartable;
 
 /**
  *
  * @author Nithin
  */
-public final class MapGen {
+public final class MapGen implements Restartable {
     
     public static final int 
             TYPE_EMPTY = 0,
@@ -36,7 +36,7 @@ public final class MapGen {
     private float tx=0, ty=0;
     
     private int[][] map;
-    private Block[][] buildings;
+    private Building[][] buildings;
     
     private final ArrayList<RoadSegment> roads = new ArrayList<>();
     
@@ -55,7 +55,7 @@ public final class MapGen {
         cellHeight_world = box2d.scalarPixelsToWorld(cellHeight);
         
         map = new int[cellsSideLength_int][cellsSideLength_int];
-        buildings = new Block[cellsSideLength_int][cellsSideLength_int];
+        buildings = new Building[cellsSideLength_int][cellsSideLength_int];
         
         r = new Random();
         
@@ -153,6 +153,8 @@ public final class MapGen {
             }
         }
         
+        float randCos = cos(c.millis()/5000f), randSpacing = 0.7f-0.15f*randCos, randHeight = 30+15*randCos;
+        
         for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
             int type = map[i][j];
             float x = tx - width/2 + WIDTH/2 + i*cellWidth,
@@ -161,7 +163,7 @@ public final class MapGen {
             Vec2 pos = box2d.coordPixelsToWorld(x, y);
             
             if(type==TYPE_BUILDING && buildings[i][j]==null) {
-                Block b = new Block(pos.x, pos.y, 0, cellWidth_world*0.6f, cellHeight_world*0.6f, 15, true);
+                Building b = new Building(pos.x, pos.y, 0, cellWidth_world*randSpacing, cellHeight_world*randSpacing, randHeight);
                 buildings[i][j] = b;
             } else if(type==TYPE_ROAD) {
                 int i_copy = i, j_copy = j;
@@ -201,7 +203,7 @@ public final class MapGen {
     private void emptyMap(int startI, int startJ, int endI, int endJ) {
         for(int i=startI; i<endI; i++) for(int j=startJ; j<endJ; j++) {
             map[i][j] = TYPE_EMPTY;     
-            Block b = buildings[i][j];
+            Building b = buildings[i][j];
             if(b!=null) b.dispose();
             buildings[i][j] = null;
         }
@@ -211,7 +213,7 @@ public final class MapGen {
     
     private void translateMap(int ti, int tj) {
         int[][] temp = new int[cellsSideLength_int][cellsSideLength_int];
-        Block[][] tempBuildings = new Block[cellsSideLength_int][cellsSideLength_int];
+        Building[][] tempBuildings = new Building[cellsSideLength_int][cellsSideLength_int];
         for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
             int copy_i = i-2*ti, copy_j = j-2*tj;
             if(copy_i<cellsSideLength_int && copy_i>=0 && copy_j<cellsSideLength_int && copy_j>=0) {
@@ -219,7 +221,7 @@ public final class MapGen {
                 tempBuildings[i][j] = buildings[copy_i][copy_j];
             } else {
                 temp[i][j] = TYPE_EMPTY;
-                Block b = buildings[cellsSideLength_int-1-i][cellsSideLength_int-1-j];
+                Building b = buildings[cellsSideLength_int-1-i][cellsSideLength_int-1-j];
                 if(b != null) b.dispose();
                 tempBuildings[i][j] = null;
             }
@@ -249,7 +251,7 @@ public final class MapGen {
     }
     
     private void drawBuildings() {
-        for(Block[] col : buildings) for(Block b : col) if(b != null) b.render(c.g);
+        for(Building[] col : buildings) for(Building b : col) if(b != null) b.render(c.g);
     }
     
     private void drawRoads() {
@@ -289,6 +291,13 @@ public final class MapGen {
         drawGround();
         drawBuildings();
         drawRoads();
+    }
+    
+    @Override
+    public void restart() {
+        emptyMap(0, 0, subDivs, subDivs);
+        recalculateMap(0, 0, subDivs, subDivs);
+        tx = ty = 0;
     }
     
     public class MapCoord {

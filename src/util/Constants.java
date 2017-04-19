@@ -37,7 +37,13 @@ public final class Constants {
             MODEL_POLICE_JEEP = 1,
             MODEL_CIV_CAR = 2,
             MODEL_CIV_JEEP = 3,
-            MODEL_CIV_PICKUP = 4;
+            MODEL_CIV_PICKUP = 4,
+            MODEL_CIV_CONV = 5,
+            MODEL_RAND_CIV = 6,
+            
+            FAR_ABOVE_VIEW = 0,
+            CLOSE_ABOVE_VIEW = 1,
+            CLOSE_CHASE_VIEW = 2;
     
     public static final float
             TIMESTEP = 1.f/FPS,
@@ -54,7 +60,9 @@ public final class Constants {
             MAX_EXPLOSION_IMPULSE = 1000000000;
     
     public static final String
-            AI_PATH_URL = "./res/cache/ai_path.json";
+            AI_PATH_URL = "./res/cache/ai_path.json",
+            SCORE_SAVE_URL = "./res/cache/highscore.json",
+            LOADING_SCREEN_URL = "./res/loadingScreen/loadingScreen.png";
     
     public static final int
             ASPHALT_TEX = 0;
@@ -102,6 +110,8 @@ public final class Constants {
     };
     
     public static final Color
+            CYBER_FLOOR_COLOR = new Color(200, 220, 240),
+            GHOST_TOWN_FLOOR_COLOR = new Color(140, 130, 110),
             SMOKE_COLOR = new Color(70, 65, 55, 180),//new Color(210, 235, 200, 180);
             DAMAGE_SMOKE_COLOR = new Color(8, 5, 8, 230),
             EXPLOSION_FIRE_COLOR = new Color(240, 210, 50, 230);

@@ -12,12 +12,13 @@ import procGen.MapGen.MapCoord;
 import static procGen.MapGen.TYPE_EMPTY;
 import static procGen.MapGen.TYPE_ROAD;
 import static processing.core.PApplet.map;
+import util.interfaces.Restartable;
 
 /**
  *
  * @author nithin
  */
-public abstract class Spawner {
+public abstract class Spawner implements Restartable {
     
     private final float minRadius, maxRadius;
     private int targetNumberOfCars;
@@ -80,5 +81,11 @@ public abstract class Spawner {
 
     public void setTargetNumberOfCars(int targetNumberOfCars) {
         this.targetNumberOfCars = targetNumberOfCars;
+    }
+    
+    @Override
+    public void restart() {
+        spawnedCars.forEach(AI_Car::dispose);
+        spawnedCars.clear();
     }
 }

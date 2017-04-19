@@ -25,7 +25,7 @@ public final class CollisionSounds extends Sound<Float> implements ContactListen
     
     @Override
     public SoundManager<Float> createSoundManager() {
-        return new SoundManager<>(CAR_CRASH, 8, false, distSoundComparator);
+        return new SoundManager<>(CAR_CRASH, 8, false, distSoundComparator, Float.MAX_VALUE);
     }
     
     @Override

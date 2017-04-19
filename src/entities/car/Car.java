@@ -55,6 +55,8 @@ public abstract class Car implements Drawable, Disposable, PostDraw {
     private final PShape model;
     private final int modelType;
     
+    protected boolean noExplosionFlag = false;
+    
     public Car(float x, float y, float theta, float l, float w, float h, float dragConst, float densityMultiplier, int modelType) {
         
         this.l = l;
@@ -131,7 +133,7 @@ public abstract class Car implements Drawable, Disposable, PostDraw {
     private void drive() {
         //throttle = constrain(throttle, 0, 2.6f);
         //throttle = constrain(throttle, 0, 1);
-        if(reverse) throttle = 0.2f;
+        if(reverse) throttle = 0.6f;
         float speed = getForwardSpeed();
         Vec2 pos = chasis.getPosition();
         
@@ -195,8 +197,9 @@ public abstract class Car implements Drawable, Disposable, PostDraw {
     
     @Override
     public void dispose() {
+        if(dead) return;
         chasis.setUserData(null);
-        if(health <= 0) {
+        if(!noExplosionFlag && health <= 0) {
             explosions.add(new Explosion(chasis.getPosition(), 1, 40, 40, 0.4f, 3));
             carRemnants.add(getRemnants());
         } else {

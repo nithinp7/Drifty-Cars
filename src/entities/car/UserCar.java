@@ -23,12 +23,12 @@ public final class UserCar extends Car {
     
     private float targetSteerAngle = 0;
     
-    ArrayList<Explosion> explosions = new ArrayList<>();
+    private final ArrayList<Explosion> explosions = new ArrayList<>();
     
-    public Vec2 dir = new Vec2(0, 0);
+    private long score = 0;
     
     public UserCar(float x, float y, float theta, float l, float w, float h) {
-        super(x, y, theta, l, w, h, DRAG_CONST, MODEL_CIV_JEEP);
+        super(x, y, theta, l, w, h, DRAG_CONST, MODEL_RAND_CIV);
         setImpactResistance(0.25f);
     }
     
@@ -38,6 +38,7 @@ public final class UserCar extends Car {
     
     @Override
     public void update() {
+        score++;
         processInput();
         explosions.forEach(Explosion::update);
         explosions.removeIf(Explosion::isDead);
@@ -58,8 +59,8 @@ public final class UserCar extends Car {
         throttle -= 0.05f*consumeMouseWheel();
         throttle = constrain(throttle, 0, 1.4f);
         
-        Vec2 target = coordPixelsToWorld(new Vec2(c.mouseX, c.mouseY));
-        dir = target.sub(frontAxle.axle.getWorldCenter());
+        Vec2 target = coordPixelsToWorld(new Vec2(c.mouseX, c.mouseY)),
+             dir = target.sub(frontAxle.axle.getWorldCenter());
         
         float cAng = chasis.getAngle();
         targetSteerAngle = atan2(dir.x*sin(-cAng) + dir.y*cos(-cAng), dir.x * cos(-cAng) - dir.y*sin(-cAng));
@@ -70,6 +71,10 @@ public final class UserCar extends Car {
         float theta = frontAxle.axle.getAngle()-chasis.getAngle();
         
         turn = constrain(targetSteerAngle - theta, -1, 1);
+    }
+    
+    public long getScore() {
+        return score;
     }
     
     public void createExplosion() {

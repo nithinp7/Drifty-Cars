@@ -26,6 +26,8 @@ public final class Pursuer_AI extends AI_Car {
     private final AudioRequest<Float> sirenSound;
     
     private int lightCounter = 0;
+    
+    private final double creationTime;
 
     public Pursuer_AI(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
         super(x, y, theta, l, w, h, steeringControl, 0, 2, MODEL_POLICE_CAR);
@@ -37,6 +39,8 @@ public final class Pursuer_AI extends AI_Car {
         
         sirenSound = new AudioRequest<>(0, 0, 1, 1, Float.MAX_VALUE);
         sirenSounds.addRequest(sirenSound);
+        
+        creationTime = getTimeElapsed();
     }
 
     @Override
@@ -72,7 +76,7 @@ public final class Pursuer_AI extends AI_Car {
               vol = dist > 200 ? 0 : 1-pow(norm(constrain(dist, 0, 300), 0, 300), 0.25f);
         
         sirenSound.setGainTime(40);
-        sirenSound.setGainValue(vol*0.15f);
+        sirenSound.setGainValue(vol*0.05f);
     }
     
     @Override
@@ -93,6 +97,7 @@ public final class Pursuer_AI extends AI_Car {
     
     @Override
     public void dispose() {
+        if(getTimeElapsed()-creationTime < 8) noExplosionFlag = true;
         sirenSounds.removeRequest(sirenSound);
         super.dispose();
     }

@@ -1,12 +1,16 @@
 
 package main;
 
+import static java.awt.event.KeyEvent.VK_SPACE;
 import processing.core.PApplet;
 import static main.Game.*;
+import static main.Init.initLoadingScreen;
+import static main.Init.tickLoadingScreen;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 import static util.Constants.*;
 import util.input.Input;
+import static util.input.Input.consumeInput;
 
 /**
  *
@@ -16,6 +20,8 @@ public final class Main extends PApplet {
     
     public static PApplet c /*for context*/;
     public static boolean initialized = false;
+    
+    private static boolean started = false;
     
     public static void main(String[] args) {
         PApplet.main("main.Main");
@@ -36,12 +42,18 @@ public final class Main extends PApplet {
         
         new Thread(Game::init).start();
         
+        initLoadingScreen();
+        
         System.out.println(WIDTH + ", " + HEIGHT);
     }
     
     @Override
     public void draw() {
-        if(!initialized) return;
+        if(!(initialized && started)) {
+            started = consumeInput(VK_SPACE);
+            tickLoadingScreen(initialized);
+            return;
+        }
         tick();
         render();
     }
@@ -79,6 +91,7 @@ public final class Main extends PApplet {
     @Override
     public void exit() {
         System.out.println("Exiting");
+        if(initialized && started) saveScore();
         closeSounds();
         super.exit();
     }

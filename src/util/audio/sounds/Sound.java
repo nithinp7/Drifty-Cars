@@ -3,13 +3,14 @@ package util.audio.sounds;
 
 import util.audio.AudioRequest;
 import util.audio.SoundManager;
+import util.interfaces.Restartable;
 
 /**
  *
  * @author nithin
  * @param <T>
  */
-public abstract class Sound<T> {
+public abstract class Sound<T> implements Restartable {
     
     private SoundManager<T> sm;
     
@@ -29,5 +30,9 @@ public abstract class Sound<T> {
     
     public void removeRequest(AudioRequest<T> req) {
         sm.removeRequest(req);
+    }
+    
+    public void restart() {
+        sm.restart();
     }
 }

@@ -1,19 +1,18 @@
 
 package main;
 
-import entities.car.ai.Ambient_AI;
-import ai.PID;
 import ai.Path;
 import beads.AudioContext;
 import beads.Gain;
 import entities.building.Block;
 import entities.car.*;
-import entities.car.ai.Pursuer_AI;
 import entities.spawners.AmbientCarSpawner;
 import entities.spawners.PursuerSpawner;
 import entities.spawners.Spawner;
 import entities.surface.Floor;
 import static java.awt.event.KeyEvent.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +26,7 @@ import particles.explosions.Explosion;
 import procGen.MapGen;
 import static processing.core.PConstants.PI;
 import processing.core.PGraphics;
+import processing.data.JSONObject;
 import shiffman.box2d.*;
 import util.Skybox;
 import util.audio.sounds.CarSounds;
@@ -89,9 +89,14 @@ public final class Game {
     private static boolean tiltCamera = false;
     private static int cameraZ;
     
-    private static boolean mute = false;
+    private static boolean mute = false, debug = false;
+    protected static boolean restartFlag = false;
     
     private static long startTime;
+    
+    private static int view = CLOSE_ABOVE_VIEW;
+    
+    private static long highscore;
     
     private static PGraphics g;
     
@@ -109,6 +114,8 @@ public final class Game {
         
         c.sphereDetail(5);
         
+        readScore();
+        
         initialized = true;
     }
     
@@ -118,8 +125,7 @@ public final class Game {
         Vec2 cPos = cameraTarget.getPosition();
         audioListener.set(cPos.x, cPos.y, box2d.scalarPixelsToWorld(WIDTH*0.4f - cameraZ));
         
-        updatePathDebug();
-        updateAI_Debug();
+        updateDebugInput();
         updateCamera();
         map.update();
             
@@ -146,7 +152,7 @@ public final class Game {
         
         carRemnants.removeIf(CarRemnants::isDead);
         
-        if(user.isDead() && userRemnants.isDead()) initUserVehicle();
+        if(restartFlag || (user.isDead() && userRemnants.isDead())) restartGame();
     }
         
     protected static void render() {
@@ -200,80 +206,60 @@ public final class Game {
         explosions.forEach(exp -> exp.postRender(g));
         
         c.popMatrix();
+        
+        renderHUD();
+        //System.out.println(c.frameRate);
+    }
+    
+    private static void renderHUD() {
         c.fill(0, 100);
         c.stroke(0);
         
         c.hint(DISABLE_DEPTH_TEST);
         c.noLights();
-        float fps = c.frameRate;
-        String text = "FPS "+fps;
-        c.rect(50, 50, c.textWidth(text), 50);
+        c.textSize(14);
+        c.textAlign(CENTER, TOP);
+        float fps = c.frameRate, health = constrain(user.getHealth(), 0, 100);
+        String textFps = "FPS: "+(int)fps, textHealth = "Health: "+(int)health+"%";
+        c.rect(50, 50, 150, 90);
         if(fps>FPS*5/6) c.fill(0, 255, 0);
         else if(fps>FPS*2/3) c.fill(220, 220, 0);
         else c.fill(255, 0, 0);
-        c.text(text, 50, 50, 150, 150);
-        c.fill(255);
-        c.text("Health: "+user.getHealth(), 50, 70, 150, 150);
+        c.text(textFps, 50, 50, 150, 150);
+        if(health>75) c.fill(255f);
+        else if(health>30) c.fill(220, 220, 0);
+        else c.fill(255, 0, 0);
+        c.text(textHealth, 50, 70, 150, 150);
+        c.fill(255f);
+        c.text("Highscore: "+highscore, 50, 90, 150, 150);
+        c.text("Score: "+user.getScore(), 50, 110, 150, 150);
         c.hint(ENABLE_DEPTH_TEST);
-        //System.out.println(c.frameRate);
     }
     
     private static void updateMute() {
-        if(consumeInput(VK_SPACE)) ac.out.setGain((mute=!mute)? 0:0.8f);
+        if(consumeInput(VK_M)) ac.out.setGain((mute=!mute)? 0:0.8f);
     }
     
-    private static void updatePathDebug() {
-        if(isKeyPressed(VK_CONTROL)) {
-            boolean directed = consumeMousePress(LEFT),
-                    undirected = directed? false : consumeMousePress(RIGHT);
-            
-            Vec2 pos = coordPixelsToWorld(c.mouseX, c.mouseY);
-            if(directed || undirected) path.addNode(pos.x, pos.y, directed, consumeInput(VK_SPACE));
-            //path.addNode(pos.x, pos.y, false, false);
-        }
-        if(consumeInput(VK_C)) {
-            path.clear();
-        }
-        if(consumeInput(VK_S)) {
-            //path.savePath(AI_PATH_URL);
-        }
-        if(consumeInput(VK_L)) {
-            path.initFromJSON(AI_PATH_URL);
-        }
-    }
-    
-    private static void updateAI_Debug() { 
-        Vec2 pos = coordPixelsToWorld(c.mouseX, c.mouseY);
-        if(consumeInput(VK_M)) {
-            //AI_Car aiCar = new Ambient_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 1.8f, 1.2f, new PID(-0.1f, -1.3f, 0f));
-            AI_Car aiCar = new Ambient_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 2.5f, 0.6f, 0.4f, new PID(-0.1f, -1.3f, 0f));
-            aiCars.add(aiCar);
-            cars.add(aiCar);
-            //cameraTarget = aiCar.chasis;
-        }
-        
-        if(consumeInput(VK_N)) {
-            //AI_Car aiCar = new Pursuer_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 6, 2.5f, 2f, new PID(-0.1f, -0.7f, 0f));
-            AI_Car aiCar = new Pursuer_AI(pos.x, pos.y, atan2(c.pmouseY-c.mouseY, c.mouseX-c.pmouseX), 2.5f, 0.83f, 0.67f, new PID(-0.1f, -0.4f, 0f));
-            aiCars.add(aiCar);
-            cars.add(aiCar);
-            //cameraTarget = aiCar.chasis;
-        }
-        
-        if(consumeInput(VK_K)) {
-            Block b = new Block(pos.x, pos.y, 0, 10, 10, 10, false);
-            blocks.add(b);
-        }
+    private static void updateDebugInput() {
+        if(consumeInput(VK_R)) restartFlag = true;
+        //if(consumeInput(VK_D)) debug = !debug;
     }
     
     private static void updateCamera() {
+        if(consumeInput(VK_V)) view = (view+1)%2;
+        float invChaseSensitivity = view<2?100:20;
         Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition()), targetDir = cameraTarget.getWorldVector(new Vec2(0, -1)), camDir = new Vec2(cos(cameraAngle), sin(cameraAngle));
-        cameraAngle -= atan2(targetDir.x*camDir.y + targetDir.y*camDir.x, targetDir.x*camDir.x - targetDir.y*camDir.y)/40f;
+        cameraAngle -= atan2(targetDir.x*camDir.y + targetDir.y*camDir.x, targetDir.x*camDir.x - targetDir.y*camDir.y)/invChaseSensitivity;
         Vec2 newCamTrans = new Vec2(pos.x-WIDTH/2, pos.y-HEIGHT/2), deltaCamTrans = newCamTrans.sub(cameraTranslation);
         cameraTranslation.set(newCamTrans);
-        if(consumeInput(VK_Z)) cameraZ += 60;
-        if(consumeInput(VK_X)) cameraZ -= 60;
-        if(consumeInput(VK_T)) tiltCamera = !tiltCamera;
+        if(debug) {
+            if(consumeInput(VK_Z)) cameraZ += 60;
+            if(consumeInput(VK_X)) cameraZ -= 60;
+            if(consumeInput(VK_T)) tiltCamera = !tiltCamera;
+        } else {
+            tiltCamera = view==2;
+            cameraZ = (int)(WIDTH*(view==0?0.3:view==1?0.43f:0.44f));
+        }
     }
     
     public static Vec2 coordPixelsToWorld(Vec2 pixels) {
@@ -352,5 +338,25 @@ public final class Game {
     
     public static double getTimeElapsed() {
         return (System.currentTimeMillis()-startTime)*0.001;
+    }
+    
+    private static void readScore() {
+        try {
+            JSONObject jo = loadJSONObject(new File(SCORE_SAVE_URL));
+            highscore = jo.getLong("highscore", 0);
+        } catch(Exception e) {
+            highscore = 0;
+            saveScore();
+        }
+    }
+    
+    protected static void saveScore() {
+        long score = user.getScore();
+        if(score <= highscore) return;
+        JSONObject jo = new JSONObject();
+        jo.setLong("highscore", score);
+        highscore = score;
+        
+        jo.save(new File(SCORE_SAVE_URL), "");
     }
 }

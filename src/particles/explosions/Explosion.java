@@ -60,10 +60,13 @@ public final class Explosion implements RayCastCallback, PostDraw, Disposable {
         for(int i=0; i<rays; i++) box2d.world.raycast(this, pos, new Vec2(pos.x+radius*cos(angleStep*i), pos.y+radius*sin(angleStep*i)));
         
         float dist = getDistanceToAudioListener(pos.x, pos.y, 0),
-              vol = 1-pow(norm(constrain(dist, 0, 100), 0, 100), 2f);
+              vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 2f);
         
         vol *= 0.2f*strength;
-        explosionSounds.addRequest(explosionSound = (dist>100)?null:new AudioRequest<>(vol, 0, 1, 0, dist));
+        if(dist<WIDTH*0.5f) {
+            explosionSound = new AudioRequest<>(vol, 0, 1f, 20, dist);
+            explosionSounds.addRequest(explosionSound);
+        } else explosionSound = null;
     }
     
     public Explosion(Body parent, float strength, float radius, int rays, float fireTime, float smokeTime) {
@@ -77,12 +80,13 @@ public final class Explosion implements RayCastCallback, PostDraw, Disposable {
     @Override
     public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float frac) {
         Body body = fxtr.getBody();
-        float dist = point.sub(pos).length();
+        Vec2 dif = point.sub(pos);
+        float dist = dif.length();
         
         if(parent==body) return -1;
         
         float currentStrength = strength;//*(0.4f*(1-dist/radius)+0.6f);
-        fxtr.getBody().applyLinearImpulse(body.getPosition(), norm.mul(currentStrength*MAX_EXPLOSION_IMPULSE), true);
+        fxtr.getBody().applyLinearImpulse(body.getPosition(), dif.mul(currentStrength*MAX_EXPLOSION_IMPULSE/dist), true);
         return 0;
     }
     

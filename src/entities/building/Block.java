@@ -1,7 +1,6 @@
 
 package entities.building;
 
-import java.util.HashMap;
 import static main.Game.*;
 import static main.Main.c;
 import org.jbox2d.collision.shapes.PolygonShape;
@@ -14,7 +13,6 @@ import org.jbox2d.dynamics.joints.FrictionJointDef;
 import static processing.core.PConstants.QUADS;
 import processing.core.PGraphics;
 import processing.core.PShape;
-import static util.Constants.*;
 import static util.geometry.Shapes.createBox;
 import util.interfaces.Disposable;
 import util.interfaces.Drawable;
@@ -29,7 +27,8 @@ public final class Block implements Drawable, Disposable {
     
     private final Body body;
     
-    private final float x, y, theta, l, l_pixels, w, w_pixels, h, h_pixels;
+    public final float x, y, theta, l, l_pixels, w, w_pixels, h, h_pixels;
+    
     private final Vec2 pos_pix;
     
     private boolean dead = false;

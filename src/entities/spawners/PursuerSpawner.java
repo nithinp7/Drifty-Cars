@@ -5,19 +5,21 @@ import ai.PID;
 import entities.car.AI_Car;
 import entities.car.ai.Pursuer_AI;
 import static main.Game.getCameraTarget;
-import static main.Game.getTimeElapsed;
 import org.jbox2d.common.Vec2;
 import static processing.core.PApplet.atan2;
 import static processing.core.PApplet.constrain;
+import static util.Constants.FPS;
 
 /**
  *
  * @author nithin
  */
 public class PursuerSpawner extends Spawner {
+    
+    private int counter = 0;
 
     public PursuerSpawner() {
-        super(55, 90, 3);
+        super(55, 90, 0);
     }
     
     @Override
@@ -28,6 +30,12 @@ public class PursuerSpawner extends Spawner {
     
     @Override
     protected void updateSubClass() {
-        setTargetNumberOfCars(constrain(3+(int)(getTimeElapsed()/10), 0, 12));
+        setTargetNumberOfCars(constrain(0+3*(int)(counter++/10.0f/FPS), 0, 12));
+    }
+    
+    @Override
+    public void restart() {
+        counter = 0;
+        super.restart();
     }
 }

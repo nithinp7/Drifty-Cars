@@ -12,6 +12,6 @@ public final class SirenSounds extends Sound<Float> {
     
     @Override
     public SoundManager<Float> createSoundManager() {
-        return new SoundManager<>(POLICE_SIREN, 5, true, distSoundComparator);
+        return new SoundManager<>(POLICE_SIREN, 5, true, distSoundComparator, Float.MAX_VALUE);
     }
 }
