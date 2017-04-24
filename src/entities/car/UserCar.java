@@ -28,7 +28,7 @@ public final class UserCar extends Car {
     private long score = 0;
     
     public UserCar(float x, float y, float theta, float l, float w, float h) {
-        super(x, y, theta, l, w, h, DRAG_CONST, MODEL_RAND_CIV);
+        super(x, y, theta, l, w, h, DRAG_CONST, MODEL_RAND_CAR);
         setImpactResistance(0.25f);
     }
     
@@ -46,12 +46,12 @@ public final class UserCar extends Car {
     }
     
     private void processInput() {
-        boolean[] inputs = consumeInput(new int[]{VK_UP, VK_DOWN, VK_E});
+        boolean[] inputs = consumeInput(new int[]{VK_UP, VK_DOWN});//, VK_E});
         brake = isMousePressed(LEFT);
         
         if(inputs[0]) throttle += 0.1f;
         if(inputs[1]) throttle -= 0.1f;
-        if(inputs[2]) createExplosion();
+        //if(inputs[2]) createExplosion();
         
         reverse = isKeyPressed(VK_R) || isMousePressed(RIGHT);
         float speed = getForwardSpeed();
@@ -73,6 +73,10 @@ public final class UserCar extends Car {
         turn = constrain(targetSteerAngle - theta, -1, 1);
     }
     
+    public float getThrottlePercent() {
+        return 100f*throttle/1.4f;
+    }
+    
     public long getScore() {
         return score;
     }
@@ -83,7 +87,7 @@ public final class UserCar extends Car {
     
     @Override
     public CarRemnants getRemnants() {
-        CarRemnants cr = super.getRemnants();
+        CarRemnants cr = new CarRemnants(chasis, frontAxle, rearAxle, modelType, l_pixels, w_pixels, h_pixels);//super.getRemnants();
         userRemnants = cr;
         return cr;
     }

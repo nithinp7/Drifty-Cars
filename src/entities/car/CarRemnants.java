@@ -18,7 +18,8 @@ import util.interfaces.Drawable;
 public class CarRemnants implements Disposable, Drawable {
     
     private final PShape model;
-    private final int modelType;
+    
+    public final int modelType;
     
     private final float lifeTime;
     
@@ -29,6 +30,7 @@ public class CarRemnants implements Disposable, Drawable {
     private final Body chasis;
     
     private int counter = 0;
+    private boolean permanent = false;
     
     public CarRemnants(Body chasis, Axle frontAxle, Axle rearAxle, int modelType, float l_pixels, float w_pixels, float h_pixels, float lifeTime) {
         this.chasis = chasis;
@@ -41,11 +43,16 @@ public class CarRemnants implements Disposable, Drawable {
         model = createVehicleModel(modelType, l_pixels, w_pixels, h_pixels, true);
     }
     
+    public CarRemnants(Body chasis, Axle frontAxle, Axle rearAxle, int modelType, float l_pixels, float w_pixels, float h_pixels) {
+        this(chasis, frontAxle, rearAxle, modelType, l_pixels, w_pixels, h_pixels, 0);
+        permanent = true;
+    }
+    
     public void update() {
         frontAxle.update(true);
         rearAxle.update(true);
         
-        if(counter++>=lifeTime*FPS) dispose();
+        if(!permanent && counter++>=lifeTime*FPS) dispose();
     }
     
     @Override

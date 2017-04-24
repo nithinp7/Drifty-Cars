@@ -39,7 +39,8 @@ public final class Constants {
             MODEL_CIV_JEEP = 3,
             MODEL_CIV_PICKUP = 4,
             MODEL_CIV_CONV = 5,
-            MODEL_RAND_CIV = 6,
+            MODEL_FUEL_TRUCK = 6,
+            MODEL_RAND_CAR = 7,
             
             FAR_ABOVE_VIEW = 0,
             CLOSE_ABOVE_VIEW = 1,
@@ -65,10 +66,12 @@ public final class Constants {
             LOADING_SCREEN_URL = "./res/loadingScreen/loadingScreen.png";
     
     public static final int
-            ASPHALT_TEX = 0;
+            ASPHALT_TEX = 0,
+            WINDOWS_TEX = 1;
     
     private static final String[] TEX_URLS = { 
-        "./res/textures/asphalt.jpg" //ASPHALT_TEX
+        "./res/textures/asphalt.jpg", //ASPHALT_TEX
+        "./res/textures/windows.png"
     };
     
     public static final int

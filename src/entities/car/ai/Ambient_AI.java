@@ -14,8 +14,8 @@ import org.jbox2d.common.Vec2;
 import procGen.MapGen.MapCoord;
 import static procGen.MapGen.TYPE_ROAD;
 import static processing.core.PApplet.*;
-import static util.Constants.MODEL_RAND_CIV;
-import static util.Constants.TYPE_BUILDING;
+import static util.Constants.MODEL_FUEL_TRUCK;
+import static util.Constants.MODEL_RAND_CAR;
 
 /**
  *
@@ -25,13 +25,16 @@ public final class Ambient_AI extends AI_Car {
     
     private MapCoord current = null, target = null;
     
-    private static final FrontObstacleDetector.AdditionalCheck ac = (fxtr, point, norm, frac) -> ((HashMap<String, Integer>)fxtr.getBody().getUserData()).get("TYPE")==TYPE_BUILDING? -1 : 1;
-    
-    public Ambient_AI(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
-        super(x, y, theta, l, w, h, steeringControl, 0, MODEL_RAND_CIV);
+    public Ambient_AI(float x, float y, float theta, float l, float w, float h, PID steeringControl, int modelType) {
+        super(x, y, theta, l, w, h, steeringControl, 0, modelType);
         //frontObstacleDetector.addCheck(ac);
+        if(modelType==MODEL_FUEL_TRUCK) setImpactResistance(0.0025f);
         frontObstacleDetector.setScale(0.3f);
         setDeleteDistance(300);
+    }
+    
+    public Ambient_AI(float x, float y, float theta, float l, float w, float h, PID steeringControl) {
+        this(x, y, theta, l, w, h, steeringControl, MODEL_RAND_CAR);
     }
     
     @Override
@@ -42,7 +45,8 @@ public final class Ambient_AI extends AI_Car {
     @Override
     public void update() {
         Vec2 pos = chasis.getPosition();
-        
+        if(target!=null) target.fix();
+        if(current!=null) current.fix();
         MapCoord closest = map.getClosestMapCoordOfType(pos, TYPE_ROAD);
         
         if(closest != null) {

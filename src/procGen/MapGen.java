@@ -34,6 +34,7 @@ public final class MapGen implements Restartable {
     private final Random r;
     
     private float tx=0, ty=0;
+    private int total_ti = 0, total_tj = 0;
     
     private int[][] map;
     private Building[][] buildings;
@@ -131,9 +132,12 @@ public final class MapGen implements Restartable {
     }
 
     private void recalculateMap(int startI, int startJ, int endI, int endJ) {
+        
+        float randCos = cos(c.millis()/5000f), randSpacing = 0.7f-0.15f*randCos, randHeight = 30+15*randCos;
+        
         for(int i=startI; i<endI; i++) for(int j=startJ; j<endJ; j++) {
             int ti = i, tj = j;
-            boolean rectPresent = r.nextInt(3) == 0;
+            boolean rectPresent = r.nextFloat()*(3-randHeight/15) < 0.5f;
             if(!rectPresent) continue;
             while(ti<endI && tj<endJ && map[ti*2+1][tj*2+1] == TYPE_EMPTY) {
                 map[ti*2+1][tj*2+1] = TYPE_BUILDING;
@@ -153,9 +157,8 @@ public final class MapGen implements Restartable {
             }
         }
         
-        float randCos = cos(c.millis()/5000f), randSpacing = 0.7f-0.15f*randCos, randHeight = 30+15*randCos;
-        
         for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
+            MapCoord coord = new MapCoord(i, j), coord1 = new MapCoord(i+1, j), coord2 = new MapCoord(i, j+1);
             int type = map[i][j];
             float x = tx - width/2 + WIDTH/2 + i*cellWidth,
                   y = ty - height/2 + HEIGHT/2 + j*cellHeight;
@@ -166,20 +169,19 @@ public final class MapGen implements Restartable {
                 Building b = new Building(pos.x, pos.y, 0, cellWidth_world*randSpacing, cellHeight_world*randSpacing, randHeight);
                 buildings[i][j] = b;
             } else if(type==TYPE_ROAD) {
-                int i_copy = i, j_copy = j;
                 
                 //pos.set(pos.x-2*cellWidth_world, pos.y-2*cellHeight_world);
                 
                 if(i+1<cellsSideLength_int && map[i+1][j]==TYPE_ROAD) {
-                    if(roads.stream().noneMatch(road -> road.isSame(i_copy, j_copy, i_copy+1, j_copy))) {
+                    if(roads.stream().noneMatch(road -> road.isSame(coord, coord1))) {
                         
-                        roads.add(new RoadSegment(i, j, i+1, j, cellWidth, cellHeight));
+                        roads.add(new RoadSegment(coord, coord1, cellWidth, cellHeight));
                     }
                 }
                 if(j+1<cellsSideLength_int && map[i][j+1]==TYPE_ROAD) {
-                    if(roads.stream().noneMatch(road -> road.isSame(i_copy, j_copy, i_copy, j_copy+1))) {
+                    if(roads.stream().noneMatch(road -> road.isSame(coord, coord2))) {
                         
-                        roads.add(new RoadSegment(i, j, i, j+1, cellWidth, cellHeight));
+                        roads.add(new RoadSegment(coord, coord2, cellWidth, cellHeight));
                     }
                 }
             }
@@ -212,6 +214,9 @@ public final class MapGen implements Restartable {
     }
     
     private void translateMap(int ti, int tj) {
+        total_ti += ti;
+        total_tj += tj;
+        
         int[][] temp = new int[cellsSideLength_int][cellsSideLength_int];
         Building[][] tempBuildings = new Building[cellsSideLength_int][cellsSideLength_int];
         for(int i=0; i<cellsSideLength_int; i++) for(int j=0; j<cellsSideLength_int; j++) {
@@ -240,9 +245,8 @@ public final class MapGen implements Restartable {
     private void translateRoads(int ti, int tj) {
             roads
                 .removeIf(road -> {
-                   //DEAD FLAG IS NOT SET
-                   road.translate(ti, tj);
-                   return !road.withinBounds(0, 0, cellsSideLength_int, cellsSideLength_int);
+                   road.fix();
+                   return !road.withinMap();
                 });
     }
     
@@ -273,6 +277,9 @@ public final class MapGen implements Restartable {
     }
     
     public void update() {
+        
+        //roads.removeIf(road -> !road.withinMap());
+        
         float camX = getCamTransX(), camY = getCamTransY(), difX = camX-tx, difY = camY-ty;
         if(abs(difX) >= 4*cellWidth) {
             int sign = -(int)Math.signum(difX);
@@ -301,15 +308,46 @@ public final class MapGen implements Restartable {
     }
     
     public class MapCoord {
-        public final int i, j;
+        private int i, j;
+        private int ti, tj;
         
         public MapCoord(int i, int j) {
             this.i = i;
             this.j = j;
+            
+            ti = total_ti;
+            tj = total_tj;
+        }
+        
+        public int i() {
+            return i;
+        }
+        
+        public int j() {
+            return j;
+        }
+        
+        public boolean fix() {
+            boolean needsFix = ti!=total_ti || tj!=total_tj;
+            if(needsFix) {
+                i += 2*(total_ti-ti);
+                j += 2*(total_tj-tj);
+                ti = total_ti;
+                tj = total_tj;
+            }
+            return needsFix;
         }
         
         public boolean isSame(MapCoord mc) {
             return i==mc.i && j==mc.j;
+        }
+        
+        public boolean withinMap() {
+            return i<cellsSideLength_int && i>=0 && j<cellsSideLength_int && j>=0;
+        }
+        
+        public boolean withinBounds(int i_start, int j_start, int i_end, int j_end) {
+            return i>=i_start && j>=i_start && i<i_end && j<j_end;
         }
         
         public ArrayList<MapCoord> getAdjacentCoords() {

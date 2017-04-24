@@ -62,7 +62,7 @@ public final class Explosion implements RayCastCallback, PostDraw, Disposable {
         float dist = getDistanceToAudioListener(pos.x, pos.y, 0),
               vol = 1-pow(norm(constrain(dist, 0, 300), 0, 300), 2f);
         
-        vol *= 0.2f*strength;
+        vol *= 0.4f*strength;
         if(dist<WIDTH*0.5f) {
             explosionSound = new AudioRequest<>(vol, 0, 1f, 20, dist);
             explosionSounds.addRequest(explosionSound);

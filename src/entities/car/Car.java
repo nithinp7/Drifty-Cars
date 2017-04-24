@@ -53,7 +53,7 @@ public abstract class Car implements Drawable, Disposable, PostDraw {
     private int damageAnimCounter = 0;
     
     private final PShape model;
-    private final int modelType;
+    public final int modelType;
     
     protected boolean noExplosionFlag = false;
     

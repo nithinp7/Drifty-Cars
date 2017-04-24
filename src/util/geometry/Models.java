@@ -2,11 +2,14 @@
 package util.geometry;
 
 import java.awt.Color;
+import static java.lang.Math.random;
+import java.util.Random;
 import static main.Main.c;
 import static processing.core.PConstants.*;
+import processing.core.PImage;
 import processing.core.PShape;
 import static util.Constants.*;
-import static util.geometry.Shapes.createBox;
+import static util.geometry.Shapes.*;
 
 /**
  *
@@ -15,41 +18,30 @@ import static util.geometry.Shapes.createBox;
 public final class Models {
     
     public static PShape createBuilding(float l_pixels, float w_pixels, float h_pixels) {
-        PShape building = c.createShape(GROUP), body = c.createShape(), body1 = c.createShape(), body2 = c.createShape(), body3 = c.createShape();
+        PShape building = c.createShape(GROUP), body = c.createShape(GROUP), body1 = c.createShape(GROUP), body2 = c.createShape(GROUP), body3 = c.createShape(GROUP);
+        PImage windowsTex = getTextureImage(WINDOWS_TEX);
         
         float randHeight = c.random(h_pixels/2, h_pixels);
         body.translate(-l_pixels/4, -w_pixels/4, randHeight/2);
-        body.beginShape(QUADS);
-        body.fill(getRandomBuildingColor().getRGB());
-        createBox(body, l_pixels/2, w_pixels/2, randHeight);
-        body.endShape();
+        createBuildingBox(body, l_pixels/2, w_pixels/2, randHeight, windowsTex);
         
         building.addChild(body);
         
         randHeight = c.random(h_pixels/2, h_pixels);
         body1.translate(l_pixels/4, -w_pixels/4, randHeight/2);
-        body1.beginShape(QUADS);
-        body1.fill(getRandomBuildingColor().getRGB());
-        createBox(body1, l_pixels/2, w_pixels/2, randHeight);
-        body1.endShape();
+        createBuildingBox(body1, l_pixels/2, w_pixels/2, randHeight, windowsTex);
         
         building.addChild(body1);
         
         randHeight = c.random(h_pixels/2, h_pixels);
         body2.translate(l_pixels/4, w_pixels/4, randHeight/2);
-        body2.beginShape(QUADS);
-        body2.fill(getRandomBuildingColor().getRGB());
-        createBox(body2, l_pixels/2, w_pixels/2, randHeight);
-        body2.endShape();
+        createBuildingBox(body2, l_pixels/2, w_pixels/2, randHeight, windowsTex);
         
         building.addChild(body2);
         
         randHeight = c.random(h_pixels/2, h_pixels);
         body3.translate(-l_pixels/4, w_pixels/4, randHeight/2);
-        body3.beginShape(QUADS);
-        body3.fill(getRandomBuildingColor().getRGB());
-        createBox(body3, l_pixels/2, w_pixels/2, randHeight);
-        body3.endShape();
+        createBuildingBox(body3, l_pixels/2, w_pixels/2, randHeight, windowsTex);
         
         building.addChild(body3);
         
@@ -63,7 +55,8 @@ public final class Models {
             case MODEL_CIV_JEEP: return createCivJeep(l_pixels, w_pixels, h_pixels, destroyed);
             case MODEL_CIV_CONV: return createCivConv(l_pixels, w_pixels, h_pixels, destroyed);
             case MODEL_CIV_CAR: return createCivCar(l_pixels, w_pixels, h_pixels, destroyed);
-            case MODEL_RAND_CIV: return createVehicleModel((int)c.random(2, 6), l_pixels, w_pixels, h_pixels, destroyed);
+            case MODEL_FUEL_TRUCK: return createFuelTruck(l_pixels, w_pixels, h_pixels, destroyed);
+            case MODEL_RAND_CAR: return createVehicleModel((int)c.random(2, 6), l_pixels, w_pixels, h_pixels, destroyed);
             default: return null;
         }
     }
@@ -357,6 +350,123 @@ public final class Models {
         return car;
     }
     
+    private static PShape createFuelTruck(float l_pixels, float w_pixels, float h_pixels, boolean destroyed) {
+        
+        l_pixels*=1.4f;
+        w_pixels*=1.5f;
+        h_pixels*=1.2f;
+        
+        Color color = getRandomPickupColor();
+        
+        PShape car = c.createShape(GROUP);
+        
+        car.translate(0, 0, 3*h_pixels/2);
+        
+        PShape body = c.createShape();
+        body.beginShape(QUADS);
+        
+        if(destroyed) body.fill(10);
+        else body.fill(color.getRGB());
+        body.noStroke();
+        
+        createBox(body, l_pixels, 1.4f*w_pixels, h_pixels);
+        
+        body.endShape();
+        
+        car.addChild(body);
+        
+        PShape body2 = c.createShape();
+        body2.translate(-l_pixels/7f, 0, h_pixels*1.8f);
+        body2.beginShape(QUADS);
+        
+        if(destroyed) body2.fill(10f);
+        else body2.fill(130, 40, 0);
+        body2.noStroke();
+        
+        createBox(body2, l_pixels*0.7f, w_pixels*1.3f, h_pixels*2.6f);
+        
+        body2.endShape();
+        
+        car.addChild(body2);
+        
+        PShape body3 = c.createShape();
+        //body3.translate(l_pixels*(0.35f-1/7f), 0, h_pixels*0.7f);
+        body3.translate(l_pixels*0.5f, 0, h_pixels*(0.7f+1.1f/2));
+        body3.beginShape(QUADS);
+        
+        body3.fill(5f);
+        body3.noStroke();
+        
+        createBox(body3, l_pixels*0.005f, w_pixels*1.1f, h_pixels*1.1f);
+        
+        body3.endShape();
+        
+        car.addChild(body3);
+        
+        PShape body4 = c.createShape();
+        //body4.translate(l_pixels*(0.35f-1/7f+0.5f)/2, 0, h_pixels*0.7f);
+        body4.translate(l_pixels*(0.5f-1/7f), 0, h_pixels*(0.7f));
+        body4.beginShape(QUADS);
+        
+        if(destroyed) body4.fill(10);
+        else body4.fill(color.getRGB());
+        body4.noStroke();
+        
+        //createBox(body4, l_pixels*((0.35f-1/7f+0.5f)/2-0.5f), w_pixels*1.2f, h_pixels*2.2f);
+        createBox(body4, l_pixels*2/7f, w_pixels*1.2f, h_pixels*2.2f);
+        
+        body4.endShape();
+        
+        car.addChild(body4);
+        
+        PShape body5 = c.createShape();
+        
+        body5.translate(-l_pixels/7f, 0, h_pixels*(3.1f+0.2f));
+        body5.beginShape(QUADS);
+        
+        if(destroyed) body5.fill(10f);
+        else body5.fill(130, 40, 0);
+        body5.noStroke();
+        
+        createBox(body5, 0.7f*l_pixels, w_pixels, 0.4f*h_pixels);
+        
+        body5.endShape();
+        
+        car.addChild(body5);
+        
+        PShape body6 = c.createShape();
+        
+        body6.translate(-l_pixels/7f, w_pixels*0.65f, h_pixels*1.3f);
+        body6.beginShape(QUADS);
+        
+        if(destroyed) body6.fill(10f);
+        else body6.fill(130, 40, 0);
+        body6.noStroke();
+        
+        createBox(body6, 0.7f*l_pixels, 0.4f*w_pixels, h_pixels);
+        
+        body6.endShape();
+        
+        car.addChild(body6);
+        
+        PShape body7 = c.createShape();
+        
+        body7.translate(-l_pixels/7f, -w_pixels*0.65f, h_pixels*1.3f);
+        body7.beginShape(QUADS);
+        
+        if(destroyed) body7.fill(10f);
+        else body7.fill(130, 40, 0);
+        body7.noStroke();
+        
+        createBox(body7, 0.7f*l_pixels, 0.4f*w_pixels, h_pixels);
+        
+        body7.endShape();
+        
+        car.addChild(body7);
+        
+        return car;
+    }
+    
     private static Color getRandomCarColor() {
         return new Color((int)c.random(150, 250), (int)c.random(150, 250), (int)c.random(150, 250));
     }
@@ -369,7 +479,11 @@ public final class Models {
         return new Color((int)c.random(40, 90), (int)c.random(30, 80), (int)c.random(20, 75));
     }
     
-    private static Color getRandomBuildingColor() {
+    protected static Color getRandomBuildingColor() {
+        return new Color((int)c.random(50, 70), (int)c.random(45, 50), (int)c.random(40, 45));
+    }
+    
+    protected static Color getRandomBuildingColorLight() {
         return new Color((int)c.random(100, 120), (int)c.random(90, 110), (int)c.random(80, 95));
     }
 }

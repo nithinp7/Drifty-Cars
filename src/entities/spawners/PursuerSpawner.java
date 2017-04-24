@@ -30,7 +30,7 @@ public class PursuerSpawner extends Spawner {
     
     @Override
     protected void updateSubClass() {
-        setTargetNumberOfCars(constrain(0+3*(int)(counter++/10.0f/FPS), 0, 12));
+        setTargetNumberOfCars(constrain(2+3*(int)(counter++/10.0f/FPS), 0, 12));
     }
     
     @Override

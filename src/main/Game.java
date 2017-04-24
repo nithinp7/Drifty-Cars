@@ -6,16 +6,11 @@ import beads.AudioContext;
 import beads.Gain;
 import entities.building.Block;
 import entities.car.*;
-import entities.spawners.AmbientCarSpawner;
-import entities.spawners.PursuerSpawner;
-import entities.spawners.Spawner;
+import entities.spawners.*;
 import entities.surface.Floor;
 import static java.awt.event.KeyEvent.*;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import static main.Main.*;
 import static util.Constants.*;
 import static main.Init.*;
@@ -29,12 +24,7 @@ import processing.core.PGraphics;
 import processing.data.JSONObject;
 import shiffman.box2d.*;
 import util.Skybox;
-import util.audio.sounds.CarSounds;
-import util.audio.sounds.CollisionSounds;
-import util.audio.sounds.ExplosionSounds;
-import util.audio.sounds.SirenSounds;
-import util.audio.sounds.SkidSounds;
-import util.audio.sounds.Sound;
+import util.audio.sounds.*;
 import static util.input.Input.*;
 
 /**
@@ -152,7 +142,7 @@ public final class Game {
         
         carRemnants.removeIf(CarRemnants::isDead);
         
-        if(restartFlag || (user.isDead() && userRemnants.isDead())) restartGame();
+        if(restartFlag) restartGame();// || (user.isDead() && userRemnants.isDead())) restartGame();
     }
         
     protected static void render() {
@@ -218,21 +208,41 @@ public final class Game {
         c.hint(DISABLE_DEPTH_TEST);
         c.noLights();
         c.textSize(14);
-        c.textAlign(CENTER, TOP);
-        float fps = c.frameRate, health = constrain(user.getHealth(), 0, 100);
+        c.textAlign(CENTER, CENTER);
+        float fps = c.frameRate, health = constrain(user.getHealth(), 0, 100), throttlePercent = user.getThrottlePercent();
+        long score = user.getScore();
         String textFps = "FPS: "+(int)fps, textHealth = "Health: "+(int)health+"%";
-        c.rect(50, 50, 150, 90);
+        c.rect(50, 50, 150, 60);
         if(fps>FPS*5/6) c.fill(0, 255, 0);
         else if(fps>FPS*2/3) c.fill(220, 220, 0);
         else c.fill(255, 0, 0);
-        c.text(textFps, 50, 50, 150, 150);
+        c.text(textFps, 50, 50, 150, 20);
+        c.fill(255f);
+        c.text("Highscore: "+highscore, 50, 70, 150, 20);
+        c.text("Score: "+score, 50, 90, 150, 20);
+        
+        c.fill(0, 100);
+        c.rect(WIDTH-200, 50, 150, 60);
         if(health>75) c.fill(255f);
         else if(health>30) c.fill(220, 220, 0);
         else c.fill(255, 0, 0);
-        c.text(textHealth, 50, 70, 150, 150);
+        c.text(textHealth, WIDTH-200, 50, 150, 20);
         c.fill(255f);
-        c.text("Highscore: "+highscore, 50, 90, 150, 150);
-        c.text("Score: "+user.getScore(), 50, 110, 150, 150);
+        c.text("Throttle: "+(int)throttlePercent+"%", WIDTH-200, 70, 150, 20);
+        c.fill(255, 0, 0);
+        if(user.brake) c.text("BRAKING", WIDTH-200, 90, 150, 20);
+        
+        if(user.isDead()) {
+            c.fill(0, 100);
+            c.rectMode(CENTER);
+            c.rect(WIDTH/2, HEIGHT/4, WIDTH/4, 120);
+            c.rectMode(CORNER);
+            c.textSize(24);
+            c.fill(255f);
+            c.text(score>highscore?"New Highscore!":"Highscore: "+highscore, 3*WIDTH/8, HEIGHT/4-60, WIDTH/4, 40);
+            c.text("Score: "+score, 3*WIDTH/8, HEIGHT/4-20, WIDTH/4, 40);
+            c.text("Press R to restart game", 3*WIDTH/8, HEIGHT/4+20, WIDTH/4, 40);
+        }
         c.hint(ENABLE_DEPTH_TEST);
     }
     
@@ -246,7 +256,7 @@ public final class Game {
     }
     
     private static void updateCamera() {
-        if(consumeInput(VK_V)) view = (view+1)%2;
+        if(consumeInput(VK_V)) view = (view+1)%3;
         float invChaseSensitivity = view<2?100:20;
         Vec2 pos = box2d.coordWorldToPixels(cameraTarget.getPosition()), targetDir = cameraTarget.getWorldVector(new Vec2(0, -1)), camDir = new Vec2(cos(cameraAngle), sin(cameraAngle));
         cameraAngle -= atan2(targetDir.x*camDir.y + targetDir.y*camDir.x, targetDir.x*camDir.x - targetDir.y*camDir.y)/invChaseSensitivity;

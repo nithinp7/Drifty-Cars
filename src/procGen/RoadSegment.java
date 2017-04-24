@@ -1,6 +1,7 @@
 
 package procGen;
 
+import procGen.MapGen.MapCoord;
 import processing.core.PGraphics;
 import util.interfaces.*;
 
@@ -10,7 +11,7 @@ import util.interfaces.*;
  */
 public final class RoadSegment implements Drawable, Disposable {
     
-    private int i0, j0, i1, j1;
+    protected MapCoord a, b;
     
     private final int dir;
     private final float cellWidth, cellHeight;
@@ -22,17 +23,15 @@ public final class RoadSegment implements Drawable, Disposable {
             DIR_LEFT = 2,
             DIR_UP = 3;
     
-    public RoadSegment(int i0, int j0, int i1, int j1, float cellWidth, float cellHeight) {
+    public RoadSegment(MapCoord a, MapCoord b, float cellWidth, float cellHeight) {
         
-        this.i0 = i0;
-        this.j0 = j0;
-        this.i1 = i1;
-        this.j1 = j1;
+        this.a = a;
+        this.b = b;
         
         this.cellWidth = cellWidth;
         this.cellHeight = cellHeight;
         
-        int difI = i1-i0, difJ = j1-j0;
+        int difI = b.i()-a.i(), difJ = b.j()-a.j();
         
         if(difI == 1) dir = DIR_RIGHT;
         else if(difI == -1) dir = DIR_LEFT;
@@ -40,45 +39,51 @@ public final class RoadSegment implements Drawable, Disposable {
         else dir = DIR_UP;
     }
     
-    public boolean containsPoint(int i, int j) {
-        return !dead && ((i==i0 && j==j0) || (i==i1 && j==j1));
+    public void fix() {
+        a.fix();
+        b.fix();
+    }
+    
+    public boolean containsPoint(MapCoord point) {
+        return !dead && (a.isSame(point) || b.isSame(point));
     }
     
     public boolean withinBounds(int iStart, int jStart, int iEnd, int jEnd) {
-        return  !dead && (
-                (i0 >= iStart && i0 < iEnd && j0 >= jStart && j0 < jEnd) ||
-                (i1 >= iStart && i1 < iEnd && j1 >= jStart && j1 < jEnd));
+        return  !dead && 
+                a.withinBounds(iStart, jStart, iEnd, jEnd) &&
+                b.withinBounds(iStart, jStart, iEnd, jEnd);
     }
     
-    public boolean isSame(int i2, int j2, int i3, int j3) {
-        return  !dead && (
-                (i0==i2 && j0==j2 && i1==i3 && j1==j3) ||
-                (i1==i2 && j1==j2 && i0==i3 && j0==j3));
+    public boolean withinMap() {
+        return !dead &&
+               a.withinMap() &&
+               b.withinMap();
     }
     
-    public void translate(int ti, int tj) {
-        
-        i0 += ti;
-        j0 += tj;
-        
-        i1 += ti;
-        j1 += tj;
+    public boolean isSame(MapCoord a_, MapCoord b_) {
+        return  !dead &&
+                a.isSame(a_) &&
+                b.isSame(b_);
     }
     
     @Override
     public void render(PGraphics g) {
         if(dead) return;
+        
+        a.fix();
+        b.fix();
+        
         switch(dir) {
             case DIR_RIGHT: 
-                g.rect((i0-0.4f)*cellWidth, (j0+0.4f)*cellHeight, (i1+0.4f)*cellWidth, (j0-0.4f)*cellHeight);
+                g.rect((a.i()-0.4f)*cellWidth, (a.j()+0.4f)*cellHeight, (b.i()+0.4f)*cellWidth, (a.j()-0.4f)*cellHeight);
                 break;
             case DIR_LEFT: 
-                g.rect((i0+0.5f+0.4f)*cellWidth, (j0+0.2f)*cellHeight, (i0-1.0f-0.4f)*cellWidth, (j0+0.8f)*cellHeight);
+                g.rect((a.i()+0.5f+0.4f)*cellWidth, (a.j()+0.2f)*cellHeight, (a.i()-1.0f-0.4f)*cellWidth, (a.j()+0.8f)*cellHeight);
                 break;
             case DIR_DOWN: 
-                g.rect((i0+0.4f)*cellWidth, (j0-0.4f)*cellHeight, (i0-0.4f)*cellWidth, (j0+1.0f+0.4f)*cellHeight);
+                g.rect((a.i()+0.4f)*cellWidth, (a.j()-0.4f)*cellHeight, (a.i()-0.4f)*cellWidth, (a.j()+1.0f+0.4f)*cellHeight);
                 break;
-            case DIR_UP: g.rect((i0+0.2f)*cellWidth, (j0+0.5f+0.4f)*cellHeight, (i0+0.8f)*cellWidth, (j0-1.0f-0.4f)*cellHeight);
+            case DIR_UP: g.rect((a.i()+0.2f)*cellWidth, (a.j()+0.5f+0.4f)*cellHeight, (a.i()+0.8f)*cellWidth, (a.j()-1.0f-0.4f)*cellHeight);
         }
     }
     
