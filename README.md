@@ -18,3 +18,7 @@ Some notable hand-built features:
   - A render-target to track tire marks on dirt, that works with the procedural "conveyor-belt" movement.
   - Simple directional shadow mapping for the buildings.
   - Extremely simple, arcade-style UI.
+
+YouTube videos of the project:
+- Early stages: https://youtu.be/CVuJM_3zKpw
+- Final state: https://youtu.be/yUA8AIgW-tk
